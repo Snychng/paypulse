@@ -1,0 +1,15 @@
+{
+  "settings": "设置",
+  "minimize": "最小化",
+  "earnedToday": "今日已赚",
+  "session": "本次",
+  "dailyGoal": "今日目标",
+  "perSec": "/秒",
+  "clockOut": "下班",
+  "idle": "已下班",
+  "working": "搬砖中",
+  "paused": "摸鱼中",
+  "clockIn": "上班",
+  "slack": "摸鱼",
+  "resume": "恢复"
+}

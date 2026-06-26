@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* ============================================================
+   PayPulse 薪跳 — Tailwind v4 theme tokens
+   Sweetie-16 palette mapped to money roles (see design/pixel.css).
+   The full pixel design system is ported into React components in M8;
+   this file establishes the shared palette + base reset for all windows.
+   ============================================================ */
+@theme {
+  /* Sweetie-16 raw ramp */
+  --color-s-void: #1a1c2c;
+  --color-s-plum: #5d275d;
+  --color-s-rose: #b13e53;
+  --color-s-coral: #ef7d57;
+  --color-s-gold: #ffcd75;
+  --color-s-lime: #a7f070;
+  --color-s-green: #38b764;
+  --color-s-teal: #257179;
+  --color-s-navy: #29366f;
+  --color-s-blue: #3b5dc9;
+  --color-s-sky: #41a6f6;
+  --color-s-cyan: #73eff7;
+  --color-s-white: #f4f4f4;
+  --color-s-steel: #94b0c2;
+  --color-s-slate: #566c86;
+  --color-s-ink: #333c57;
+
+  /* semantic money roles (dark "Vault at Night") */
+  --color-money: #ffcd75;
+  --color-gain: #a7f070;
+  --color-accent: #73eff7;
+  --color-danger: #b13e53;
+
+  /* pixel fonts (loaded via @font-face in M8; fallbacks for now) */
+  --font-display: "Pixelify Sans", system-ui, sans-serif;
+  --font-term: "VT323", monospace;
+  --font-seg: "DSEG7-Classic", "VT323", monospace;
+}
+
+/* ---------- base reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-display);
+  background: var(--color-s-void);
+  color: var(--color-s-white);
+  image-rendering: pixelated;
+  overflow: hidden;
+  -webkit-font-smoothing: none;
+}
+
+/* frameless windows (mini / popover) keep a transparent backdrop so the
+   Tauri transparent(true) surface shows through (M3) */
+.mini-body,
+.popover-body {
+  background: transparent;
+}
+
+#root {
+  height: 100%;
+}

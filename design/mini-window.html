@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayPulse · Mini Window</title>
+<link rel="stylesheet" href="pixel.css" />
+<style>
+  body.desktop { width: 100vw; height: 100vh; position: relative; display: grid; place-items: center; }
+  /* ---- faux pixel desktop wallpaper (proves transparency) ---- */
+  .wall { position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    background:
+      linear-gradient(180deg, #20133a 0%, #3b1d5e 40%, #b13e53 78%, #ef7d57 100%); }
+  .wall::before { content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 18%, #fff7 0 1px, transparent 1px),
+      radial-gradient(1px 1px at 64% 9%, #fff6 0 1px, transparent 1px),
+      radial-gradient(1px 1px at 82% 26%, #fff5 0 1px, transparent 1px),
+      radial-gradient(1px 1px at 38% 30%, #fff5 0 1px, transparent 1px),
+      radial-gradient(1px 1px at 50% 14%, #fff7 0 1px, transparent 1px);
+    background-size: cover; }
+  .wall .sun { position: absolute; left: 50%; top: 46%; width: 120px; height: 120px; margin-left: -60px;
+    background: #ffcd75; box-shadow: 0 0 0 6px #ffcd7533, 0 0 0 14px #ffcd751a;
+    clip-path: polygon(50% 0,61% 12%,76% 8%,76% 24%,92% 35%,80% 50%,92% 65%,76% 76%,76% 92%,61% 88%,50% 100%,39% 88%,24% 92%,24% 76%,8% 65%,20% 50%,8% 35%,24% 24%,24% 8%,39% 12%); opacity: .9; }
+  .wall .mtn { position: absolute; left: 0; right: 0; bottom: 0; height: 38%;
+    background: #1a1c2c; clip-path: polygon(0 60%, 12% 30%, 24% 55%, 38% 18%, 52% 50%, 66% 22%, 80% 52%, 92% 32%, 100% 56%, 100% 100%, 0 100%); }
+  .wall .mtn2 { position: absolute; left: 0; right: 0; bottom: 0; height: 26%;
+    background: #29366f; clip-path: polygon(0 70%, 18% 40%, 33% 66%, 50% 30%, 70% 64%, 86% 42%, 100% 66%, 100% 100%, 0 100%); }
+  .desk-hint { position: fixed; left: 14px; bottom: 12px; z-index: 1; color: #ffffffcc;
+    font-family: 'Silkscreen'; font-size: 9px; letter-spacing: 1px; text-shadow: 1px 1px 0 #0008; }
+
+  /* ---- the mini window (resizable, container for size-based layout) ---- */
+  .mini { position: absolute; width: 300px; min-width: 170px; max-width: 460px; z-index: 5;
+    container-type: inline-size;
+    background: var(--panel); border: var(--b) solid var(--ink);
+    box-shadow: 6px 6px 0 0 var(--hard), 0 0 0 1px #0006;
+    background-image: linear-gradient(45deg, var(--dither) 25%, transparent 25% 75%, var(--dither) 75%);
+    background-size: var(--px) var(--px);
+    transition: opacity .12s steps(2); }
+  /* pixel resize grip (bottom-right), shown on hover */
+  .resize { position: absolute; right: 2px; bottom: 2px; width: 15px; height: 15px; z-index: 30;
+    cursor: nwse-resize; opacity: 0; transition: opacity .15s ease;
+    background: linear-gradient(135deg, transparent 0 42%, var(--ink-dim) 42% 56%, transparent 56% 70%, var(--ink-dim) 70% 84%, transparent 84%); }
+  #win:hover .resize { opacity: .8; }
+  .resize:hover { opacity: 1 !important; }
+  .titlebar { display: flex; align-items: center; gap: 7px; padding: 6px 7px;
+    background: var(--inset); border-bottom: var(--b) solid var(--ink); cursor: grab; }
+  .titlebar:active { cursor: grabbing; }
+  .titlebar .name { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 13px; letter-spacing: 1px; }
+  .titlebar .name .jp { color: var(--money); }
+  .tb-btns { display: flex; gap: 4px; margin-left: auto; }
+  .tb-btn { width: 22px; height: 22px; display: grid; place-items: center; color: var(--ink-dim);
+    background: var(--panel-2); border: 2px solid var(--ink); }
+  .tb-btn:hover { color: var(--money); }
+  .tb-btn.x:hover { color: var(--danger); }
+
+  main.body { padding: 14px 16px 16px; position: relative; }
+  .statusline { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .readout { position: relative; text-align: center; padding: 6px 0 2px; }
+  .money-wrap { position: relative; display: inline-block; }
+  .ripple { position: absolute; left: 50%; top: 52%; width: 50px; height: 50px; margin: -25px;
+    border: var(--b) solid var(--gain); border-radius: 50%; opacity: 0; pointer-events: none; }
+  .ripple.go { animation: pulseRing .6s steps(6) forwards; }
+  .money.big { font-size: clamp(22px, 14cqw, 58px); letter-spacing: 1px; }  /* scales with window width */
+  .money.big .digits { display: inline-block; }
+  .gain { position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+    font-family: 'Pixelify Sans'; font-weight: 700; font-size: 15px; color: var(--gain);
+    text-shadow: 2px 2px 0 var(--inset); pointer-events: none; }
+  .gain.run { animation: gainFloat 1.1s steps(11) forwards; }
+  .submeta { display: flex; justify-content: center; gap: 12px; margin-top: 8px; color: var(--ink-dim); }
+  .submeta b { color: var(--accentA); font-family: 'VT323'; font-size: 16px; }
+
+  .goalrow { margin: 12px 0 6px; }
+  .goalrow .lbl { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .ctrls { display: flex; gap: 8px; margin-top: 12px; }
+  .ctrls .btn { flex: 1; justify-content: center; }
+
+  /* ---- peek mode: idle shows only ¥+number; hover reveals full UI ---- */
+  .titlebar, .statusline, .submeta, .goalrow, .ctrls {
+    transition: opacity .16s ease, max-height .22s ease, margin .22s ease, padding .18s ease, border-width .18s ease;
+    overflow: hidden;
+  }
+  .titlebar { max-height: 48px; }
+  .statusline { max-height: 36px; }
+  .submeta { max-height: 44px; }
+  .goalrow { max-height: 52px; }
+  .ctrls { max-height: 60px; }
+  #win:not(:hover) .titlebar,
+  #win:not(:hover) .statusline,
+  #win:not(:hover) .submeta,
+  #win:not(:hover) .goalrow,
+  #win:not(:hover) .ctrls {
+    opacity: 0; max-height: 0; margin-top: 0; margin-bottom: 0;
+    padding-top: 0; padding-bottom: 0; pointer-events: none;
+  }
+  #win:not(:hover) .titlebar { border-bottom-width: 0; }
+  #win:not(:hover) main.body { padding: 12px 18px; }
+  #win { transition: opacity .12s steps(2); }
+
+  /* ---- compact mode: when the window is dragged small, hover shows only
+         titlebar + number + bare progress bar + pause/stop (rest hidden) ---- */
+  @container (max-width: 250px) {
+    .statusline { display: none; }            /* hide 搬砖中 chip + 今日已赚 label */
+    .submeta { display: none; }               /* hide ¥/s + session */
+    .goalrow .lbl { display: none; }          /* keep the bar, drop 今日目标 + % */
+    .goalrow { margin: 10px 0 4px; }
+    main.body { padding: 12px 12px 12px; }
+    .ctrls .btn { font-size: 11px; padding: 8px; }
+    .titlebar .name { font-size: 12px; }
+  }
+</style>
+</head>
+<body class="desktop crt">
+  <div class="wall"><div class="sun"></div><div class="mtn2"></div><div class="mtn"></div></div>
+  <div class="desk-hint">▓ DESKTOP — idle shows only the number · hover the window to reveal controls</div>
+
+  <div class="mini" id="win">
+    <div class="titlebar" id="bar">
+      <span id="logo"></span>
+      <span class="name">Pay<span class="jp">Pulse</span></span>
+      <div class="tb-btns nodrag">
+        <button class="tb-btn" id="setbtn"></button>
+        <button class="tb-btn" id="minbtn"></button>
+      </div>
+    </div>
+
+    <main class="body">
+      <div class="statusline">
+        <span class="chip live" id="statuschip" data-i18n="working">WORKING</span>
+        <span class="label grow" style="text-align:right" data-i18n="today">EARNED TODAY</span>
+      </div>
+
+      <div class="readout">
+        <div class="money-wrap">
+          <span class="ripple" id="ripple"></span>
+          <div class="money big" id="money">
+            <span class="cur">¥</span><span class="digits"><span class="seg-off" id="ghost">888.888</span><span class="lit"><span id="whole">238</span><span class="dot">.</span><span class="dec" id="dec">118</span></span></span>
+          </div>
+          <div id="gainlayer"></div>
+        </div>
+        <div class="submeta">
+          <span class="label">¥/S <b id="rate">0.048</b></span>
+          <span class="label" data-i18n="session">SESSION</span><b id="sess" class="font-term">02:13:40</b>
+        </div>
+      </div>
+
+      <div class="goalrow">
+        <div class="lbl"><span class="label" data-i18n="goal">DAILY GOAL</span><span class="label" id="goalpct">62%</span></div>
+        <div class="bar"><i id="goalbar" style="width:62%"></i></div>
+      </div>
+
+      <div class="ctrls nodrag">
+        <button class="btn pause" id="toggle"><span id="toggleico"></span><span data-i18n="pause">PAUSE</span></button>
+        <button class="btn stop hold" id="stopbtn"><span id="stopico"></span><span data-i18n="stop">CLOCK OUT</span></button>
+      </div>
+    </main>
+    <div class="resize nodrag" id="resize" title="drag to resize"></div>
+  </div>
+
+<script src="sprites.js"></script>
+<script>
+  const K = window.PixelKit;
+  let lang = 'zh', theme = 'dark', working = true;
+  const DECIMALS = 3;   // 首屏默认小数位数（可在设置页调整 0–4）
+
+  // inject sprites/icons — top-left app icon is the pixel gold coin
+  document.getElementById('logo').innerHTML = K.SPRITE.coin(3);
+  document.getElementById('setbtn').innerHTML = K.icon('settings', 13);
+  document.getElementById('minbtn').innerHTML = K.icon('minimize', 13);
+  document.getElementById('stopico').innerHTML = K.icon('stop', 13);
+  document.getElementById('toggleico').innerHTML = K.icon('pause', 13);
+  K.applyI18n(lang);
+
+  // ---- top-right button hover tooltips (bilingual): only Settings + Minimize ----
+  const TIPS = {
+    setbtn: { zh: '设置', en: 'Settings' },
+    minbtn: { zh: '最小化', en: 'Minimize' },
+  };
+  function applyTips(l) { for (const id in TIPS) document.getElementById(id).setAttribute('data-tip', TIPS[id][l]); }
+  applyTips(lang);
+
+  // ---- earnings engine ----
+  let earned = 238.71;
+  const rate = 0.0479;
+  const goalTotal = 383;
+  let last = performance.now();
+  const $whole = document.getElementById('whole'), $dec = document.getElementById('dec');
+  const $ghost = document.getElementById('ghost');
+  function render() {
+    const m = K.splitMoney(earned, DECIMALS);
+    $whole.textContent = m.whole; $dec.textContent = m.dec;
+    $ghost.textContent = m.whole.replace(/\d/g, '8') + '.' + '8'.repeat(DECIMALS);   // unlit 7-seg ghost matches width
+    const pct = Math.min(100, Math.round((earned / goalTotal) * 100));
+    document.getElementById('goalbar').style.width = pct + '%';
+    document.getElementById('goalpct').textContent = pct + '%';
+  }
+  document.getElementById('rate').textContent = rate.toFixed(3);
+  function frame(now) {
+    if (working) earned += rate * (now - last) / 1000;
+    last = now; render(); requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---- per-second "beat": jump + ripple + gain floater ----
+  const moneyEl = document.getElementById('money');
+  const ripple = document.getElementById('ripple');
+  let lastWhole = Math.floor(earned);
+  setInterval(() => {
+    if (!working) return;
+    moneyEl.style.animation = 'none'; void moneyEl.offsetWidth;
+    moneyEl.style.animation = 'numJump .42s steps(7)';
+    ripple.classList.remove('go'); void ripple.offsetWidth; ripple.classList.add('go');
+    const g = document.createElement('div');
+    g.className = 'gain run'; g.textContent = '+¥' + rate.toFixed(DECIMALS);
+    document.getElementById('gainlayer').appendChild(g);
+    setTimeout(() => g.remove(), 1150);
+    // milestone burst every whole ¥10
+    const w = Math.floor(earned);
+    if (Math.floor(w / 10) > Math.floor(lastWhole / 10)) flow.burst(8);
+    lastWhole = w;
+  }, 1000);
+
+  // ---- CoinFlow toward the number ----
+  const flow = K.CoinFlow(document.getElementById('win'), () => moneyEl, { minGap: 480, maxGap: 1100, scale: 3 });
+  flow.start();
+
+  // ---- controls ----
+  document.getElementById('toggle').addEventListener('click', (e) => {
+    working = !working;
+    const chip = document.getElementById('statuschip');
+    const lbl = e.currentTarget.querySelector('[data-i18n]');
+    document.getElementById('toggleico').innerHTML = K.icon(working ? 'pause' : 'play', 13);
+    e.currentTarget.classList.toggle('go', !working);
+    e.currentTarget.classList.toggle('pause', working);
+    chip.classList.toggle('live', working);
+    chip.dataset.i18n = working ? 'working' : 'paused';
+    lbl.dataset.i18n = working ? 'pause' : 'resume';
+    chip.textContent = K.t(chip.dataset.i18n, lang);
+    lbl.textContent = K.t(lbl.dataset.i18n, lang);
+    working ? flow.start() : flow.stop();
+  });
+
+  // 下班 = long-press to confirm (anti mis-tap)
+  K.holdToConfirm(document.getElementById('stopbtn'), {
+    ms: 800,
+    onConfirm: () => {
+      working = false; flow.stop();
+      const chip = document.getElementById('statuschip');
+      chip.classList.remove('live'); chip.dataset.i18n = 'idle'; chip.textContent = K.t('idle', lang);
+      const tg = document.getElementById('toggle');
+      tg.classList.remove('pause'); tg.classList.add('go');
+      document.getElementById('toggleico').innerHTML = K.icon('play', 13);
+      const l = tg.querySelector('[data-i18n]'); l.dataset.i18n = 'start'; l.textContent = K.t('start', lang);
+    },
+  });
+
+  const win = document.getElementById('win');
+
+  // settings button → open settings window (demo: new tab)
+  document.getElementById('setbtn').addEventListener('click', () => window.open('settings.html', '_blank'));
+
+  // minimize button → collapse toward the tray (demo animation), then restore
+  document.getElementById('minbtn').addEventListener('click', () => {
+    const r = win.getBoundingClientRect();
+    const dx = window.innerWidth - r.left - r.width / 2;   // fly toward top-right (tray/menubar)
+    const dy = -r.top - r.height / 2 + 12;
+    win.animate(
+      [{ transform: 'translate(0,0) scale(1)', opacity: 1 },
+       { transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: 0 }],
+      { duration: 360, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }
+    ).onfinish = () => {
+      setTimeout(() => win.animate(
+        [{ transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: 0 },
+         { transform: 'translate(0,0) scale(1)', opacity: 1 }],
+        { duration: 300, easing: 'steps(6)', fill: 'forwards' }
+      ), 900);
+    };
+  });
+
+  // ---- drag the frameless window ----
+  (function drag() {
+    const bar = document.getElementById('bar'); let dx, dy, on = false;
+    const r0 = win.getBoundingClientRect();
+    win.style.left = r0.left + 'px'; win.style.top = r0.top + 'px'; win.style.transform = 'none';
+    bar.addEventListener('pointerdown', (e) => { on = true; dx = e.clientX - win.offsetLeft; dy = e.clientY - win.offsetTop; bar.setPointerCapture(e.pointerId); });
+    bar.addEventListener('pointermove', (e) => { if (!on) return; win.style.left = (e.clientX - dx) + 'px'; win.style.top = (e.clientY - dy) + 'px'; });
+    bar.addEventListener('pointerup', () => { on = false; });
+  })();
+
+  // ---- drag the bottom-right grip to resize window width (number scales via cqw;
+  //      below 250px the container query switches to compact mode) ----
+  (function resize() {
+    const h = document.getElementById('resize'); let sx, sw, on = false;
+    h.addEventListener('pointerdown', (e) => { e.stopPropagation(); on = true; sx = e.clientX; sw = win.offsetWidth; h.setPointerCapture(e.pointerId); });
+    h.addEventListener('pointermove', (e) => { if (!on) return; const w = Math.max(170, Math.min(460, sw + (e.clientX - sx))); win.style.width = w + 'px'; });
+    h.addEventListener('pointerup', () => { on = false; });
+  })();
+</script>
+</body>
+</html>

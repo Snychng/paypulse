@@ -1,0 +1,41 @@
+# --- dependencies ---
+node_modules/
+.pnpm-store/
+
+# --- build output ---
+dist/
+dist-ssr/
+*.local
+
+# --- rust / tauri ---
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# --- databases / runtime data ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+paypulse.db*
+
+# --- editor / OS ---
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- logs ---
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --- env / secrets ---
+.env
+.env.*
+!.env.example

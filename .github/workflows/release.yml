@@ -1,0 +1,66 @@
+name: Release
+
+# Tag a release: `git tag v0.1.0 && git push --tags`
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    name: build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            args: "--target universal-apple-darwin"
+          - os: windows-latest
+            args: ""
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # create the GitHub release + upload artifacts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # universal macOS binary needs both arches
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build, sign & publish
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # --- macOS Developer ID signing + notarization (self-distribute, D5) ---
+          # Provide these repo secrets to enable signing; without them the build is
+          # produced UNSIGNED (Gatekeeper will warn on first launch).
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }} # base64 .p12 (Developer ID Application)
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }} # "Developer ID Application: Name (TEAMID)"
+          APPLE_ID: ${{ secrets.APPLE_ID }} # for notarytool
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }} # app-specific password
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # --- Windows Authenticode (optional) ---
+          # Configure bundle.windows.certificateThumbprint in tauri.conf.json, or use
+          # an Azure Trusted Signing / signtool step here with your cert.
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "PayPulse ${{ github.ref_name }}"
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

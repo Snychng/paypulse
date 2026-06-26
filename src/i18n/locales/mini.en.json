@@ -1,0 +1,15 @@
+{
+  "settings": "Settings",
+  "minimize": "Minimize",
+  "earnedToday": "Earned Today",
+  "session": "Session",
+  "dailyGoal": "Daily Goal",
+  "perSec": "/s",
+  "clockOut": "Clock Out",
+  "idle": "Idle",
+  "working": "Working",
+  "paused": "Paused",
+  "clockIn": "Clock In",
+  "slack": "Slack",
+  "resume": "Resume"
+}

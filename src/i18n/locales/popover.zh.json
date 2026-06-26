@@ -1,0 +1,24 @@
+{
+  "today": "今日已赚",
+  "clockOut": "下班",
+  "trend": "7 日趋势",
+  "settings": "设置",
+  "status": {
+    "working": "工作中",
+    "paused": "摸鱼",
+    "idle": "待机"
+  },
+  "toggle": {
+    "working": "摸鱼",
+    "paused": "恢复",
+    "idle": "上班"
+  },
+  "grid": {
+    "session": "本次",
+    "perSec": "每秒",
+    "week": "本周",
+    "month": "本月"
+  },
+  "money": "{{symbol}}{{value}}",
+  "perSecMoney": "+{{symbol}}{{value}}"
+}

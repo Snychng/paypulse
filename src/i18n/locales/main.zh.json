@@ -1,0 +1,33 @@
+{
+  "statusWorking": "上班中",
+  "statusPaused": "摸鱼中",
+  "statusIdle": "已下班",
+  "toggleSlack": "摸鱼",
+  "toggleResume": "恢复",
+  "toggleClockIn": "上班",
+  "clockOut": "下班",
+  "settings": "设置",
+  "minimize": "最小化",
+  "earnedToday": "今日已赚",
+  "perSec": "每秒",
+  "hourly": "时薪",
+  "coffee": "☕ ≈ {{n}} 杯精品手冲",
+  "statusLabel": "状态",
+  "today": "今日",
+  "week": "本周",
+  "month": "本月",
+  "allTime": "累计",
+  "trend7d": "7 日趋势",
+  "perDayUnit": "{{cur}}/天",
+  "dailyGoal": "每日目标",
+  "streak": "🔥 连续打卡 · {{n}} 天",
+  "weekday": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "设置",
+  "close": "关闭",
+  "section": {
+    "payModel": "薪资模型",
+    "appearance": "外观",
+    "behavior": "行为"
+  },
+  "field": {
+    "monthlySalary": "月薪 ({{symbol}})",
+    "dailyHours": "日工时",
+    "workdaysPerMonth": "月工作天数",
+    "windowOpacity": "窗口透明度",
+    "theme": "主题",
+    "language": "语言",
+    "milestones": "里程碑 (元，逗号分隔)",
+    "milestonesPlaceholder": "例如 100, 500, 1000"
+  },
+  "preview": {
+    "perSec": "每秒",
+    "hourly": "每小时",
+    "dailyGoal": "每日目标"
+  },
+  "opt": {
+    "enableTransparency": "启用透明度",
+    "enableTransparencyDesc": "关闭后迷你窗不透明",
+    "decimals": "小数位数",
+    "decimalsDesc": "计数器上的小数位",
+    "milestoneAlert": "里程碑提醒",
+    "milestoneAlertDesc": "每达成一个整数里程碑时提醒",
+    "autostart": "开机自启",
+    "autostartDesc": "登录后在托盘运行",
+    "overtime": "加班倍率",
+    "overtimeDesc": "超过日工时后的倍率"
+  },
+  "theme": {
+    "system": "跟随系统",
+    "dark": "深色",
+    "light": "浅色"
+  },
+  "language": {
+    "system": "跟随系统",
+    "zh": "中文",
+    "en": "English"
+  },
+  "stepper": {
+    "decreaseOvertime": "减少加班倍率",
+    "increaseOvertime": "增加加班倍率"
+  },
+  "action": {
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "✓ 已保存"
+  },
+  "error": {
+    "salaryPositive": "月薪需大于 0",
+    "dailyHoursRange": "日工时需在 0–24 之间",
+    "workdaysRange": "月工作天数需在 0–31 之间",
+    "overtimeMin": "加班倍率需 ≥ 1.0×",
+    "milestonesPositive": "里程碑须为正数（逗号分隔，单位元）",
+    "invalidInput": "输入有误",
+    "saveFailed": "保存失败，请重试"
+  }
+}

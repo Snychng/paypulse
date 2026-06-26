@@ -1,0 +1,24 @@
+{
+  "today": "Earned Today",
+  "clockOut": "Clock Out",
+  "trend": "7-Day Trend",
+  "settings": "Settings",
+  "status": {
+    "working": "Working",
+    "paused": "Paused",
+    "idle": "Idle"
+  },
+  "toggle": {
+    "working": "Slack",
+    "paused": "Resume",
+    "idle": "Clock In"
+  },
+  "grid": {
+    "session": "Session",
+    "perSec": "Per Sec",
+    "week": "Week",
+    "month": "Month"
+  },
+  "money": "{{symbol}}{{value}}",
+  "perSecMoney": "+{{symbol}}{{value}}"
+}

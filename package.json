@@ -1,0 +1,49 @@
+{
+  "name": "paypulse",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "PayPulse 薪跳 — cross-platform real-time per-second earnings counter",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-autostart": "^2",
+    "@tauri-apps/plugin-notification": "^2",
+    "@tauri-apps/plugin-os": "^2",
+    "@tauri-apps/plugin-positioner": "^2",
+    "@tauri-apps/plugin-sql": "^2",
+    "@tauri-apps/plugin-store": "^2",
+    "@tauri-apps/plugin-window-state": "^2",
+    "i18next": "^24",
+    "motion": "^12",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-i18next": "^15",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^6",
+    "vitest": "^2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "settings",
+  "description": "Settings window — core APIs at M0; sql/store/os/autostart granted in M4/M7.",
+  "windows": ["settings"],
+  "permissions": ["core:default"]
+}

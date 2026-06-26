@@ -1,0 +1,33 @@
+{
+  "statusWorking": "Working",
+  "statusPaused": "Paused",
+  "statusIdle": "Idle",
+  "toggleSlack": "Slack",
+  "toggleResume": "Resume",
+  "toggleClockIn": "Clock In",
+  "clockOut": "Clock Out",
+  "settings": "Settings",
+  "minimize": "Minimize",
+  "earnedToday": "Earned Today",
+  "perSec": "Per Sec",
+  "hourly": "Hourly",
+  "coffee": "☕ ≈ {{n}} specialty pour-overs",
+  "statusLabel": "Status",
+  "today": "Today",
+  "week": "Week",
+  "month": "Month",
+  "allTime": "All Time",
+  "trend7d": "7-Day Trend",
+  "perDayUnit": "{{cur}}/day",
+  "dailyGoal": "Daily Goal",
+  "streak": "🔥 Streak · {{n}} days",
+  "weekday": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Settings",
+  "close": "Close",
+  "section": {
+    "payModel": "Pay Model",
+    "appearance": "Appearance",
+    "behavior": "Behavior"
+  },
+  "field": {
+    "monthlySalary": "Monthly Salary ({{symbol}})",
+    "dailyHours": "Daily Hours",
+    "workdaysPerMonth": "Workdays/Month",
+    "windowOpacity": "Window Opacity",
+    "theme": "Theme",
+    "language": "Language",
+    "milestones": "Milestones (comma-separated)",
+    "milestonesPlaceholder": "e.g. 100, 500, 1000"
+  },
+  "preview": {
+    "perSec": "Per Sec",
+    "hourly": "Hourly",
+    "dailyGoal": "Daily Goal"
+  },
+  "opt": {
+    "enableTransparency": "Enable Transparency",
+    "enableTransparencyDesc": "When off, the mini window stays opaque",
+    "decimals": "Decimals",
+    "decimalsDesc": "Decimal places on the counter",
+    "milestoneAlert": "Milestones",
+    "milestoneAlertDesc": "Notify on each whole-number milestone reached",
+    "autostart": "Launch at Login",
+    "autostartDesc": "Run in the tray after login",
+    "overtime": "Overtime ×",
+    "overtimeDesc": "Multiplier applied beyond daily hours"
+  },
+  "theme": {
+    "system": "System",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "language": {
+    "system": "System",
+    "zh": "中文",
+    "en": "English"
+  },
+  "stepper": {
+    "decreaseOvertime": "Decrease overtime multiplier",
+    "increaseOvertime": "Increase overtime multiplier"
+  },
+  "action": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "✓ Saved"
+  },
+  "error": {
+    "salaryPositive": "Salary must be > 0",
+    "dailyHoursRange": "Daily hours must be between 0 and 24",
+    "workdaysRange": "Workdays must be between 0 and 31",
+    "overtimeMin": "Overtime multiplier must be ≥ 1.0×",
+    "milestonesPositive": "Milestones must be positive numbers (comma-separated)",
+    "invalidInput": "Invalid input",
+    "saveFailed": "Save failed, please retry"
+  }
+}

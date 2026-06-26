@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayPulse 薪跳 · Pixel Design System</title>
+<link rel="stylesheet" href="pixel.css" />
+<style>
+  html, body { overflow-y: auto; height: auto; }
+  body { background: #0b0c16; background-image: radial-gradient(130% 90% at 50% -10%, #1a1c2c 0%, #0b0c16 60%);
+    min-height: 100vh; padding-bottom: 60px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+  .topbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 12px;
+    padding: 12px 22px; background: #0b0c16e8; border-bottom: 2px solid var(--ink); backdrop-filter: blur(3px); }
+  .topbar .name { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 17px; letter-spacing: 1px; }
+  .topbar .name span { color: var(--money); }
+  .topbar .right { margin-left: auto; display: flex; gap: 6px; }
+  .topbar .tb { width: 30px; height: 28px; display: grid; place-items: center; background: var(--panel-2); border: 2px solid var(--ink); color: var(--ink-dim); }
+
+  /* hero */
+  .hero { position: relative; overflow: hidden; margin: 28px 0; padding: 40px 28px; border: var(--b) solid var(--ink);
+    box-shadow: 7px 7px 0 var(--hard); background: linear-gradient(160deg, #201346, #3b1d5e 55%, #b13e53);
+    background-image: linear-gradient(160deg, #201346, #3b1d5e 55%, #b13e53), linear-gradient(45deg, #ffffff10 25%, transparent 25% 75%, #ffffff10 75%);
+    background-size: cover, 4px 4px; }
+  .hero h1 { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 46px; color: var(--s-white);
+    text-shadow: 4px 4px 0 #1a1c2c, 8px 8px 0 #00000044; letter-spacing: 1px; line-height: 1; }
+  .hero h1 .y { color: var(--s-gold); }
+  .hero .tag { font-family: 'Silkscreen'; font-size: 11px; letter-spacing: 3px; color: #ffd9b0; margin-top: 14px; }
+  .hero .desc { font-family: 'DotGothic16'; font-size: 13px; color: #fff; max-width: 540px; margin-top: 12px; line-height: 1.7; opacity: .92; }
+  .hero .coinstage { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .hero .heromoney { position: absolute; right: 34px; top: 50%; transform: translateY(-50%); text-align: right; z-index: 3; }
+  .hero .heromoney .money { font-size: 52px; } .hero .heromoney .money .dot { color: #fff; }
+  .hero .heromoney .money { text-shadow: 1px 0 0 #1a1c2c, -1px 0 0 #1a1c2c, 0 1px 0 #1a1c2c, 0 -1px 0 #1a1c2c, 4px 5px 0 #00000055, 0 0 14px #ffcd7566; }
+  .hero .heromoney .label { color: #ffe9c0; }
+
+  section { margin: 34px 0; }
+  .shead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .shead .n { font-family: 'Silkscreen'; font-size: 11px; color: var(--money); letter-spacing: 2px; }
+  .shead h2 { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 22px; }
+  .shead .ln { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 10px); }
+
+  /* palette */
+  .pal { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0; border: var(--b) solid var(--ink); box-shadow: 5px 5px 0 var(--hard); }
+  .sw { aspect-ratio: 1; position: relative; display: flex; align-items: flex-end; padding: 6px; border-right: 2px solid #0004; }
+  .sw .hex { font-family: 'Silkscreen'; font-size: 7px; color: #0009; background: #ffffffaa; padding: 1px 2px; }
+  .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+  .role { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--panel); border: 2px solid var(--ink); }
+  .role .chipc { width: 20px; height: 20px; border: 2px solid var(--ink); flex: none; }
+  .role .rt { font-family: 'Silkscreen'; font-size: 9px; color: var(--ink-dim); }
+
+  /* type */
+  .typecard { background: var(--panel); border: var(--b) solid var(--ink); box-shadow: 5px 5px 0 var(--hard); padding: 18px; display: grid; gap: 16px; }
+  .specimen { border-bottom: 2px dashed var(--line); padding-bottom: 14px; }
+  .specimen:last-child { border: none; padding: 0; }
+  .specimen .meta { font-family: 'Silkscreen'; font-size: 9px; color: var(--money); letter-spacing: 1px; margin-bottom: 6px; }
+
+  /* components grid */
+  .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .cbox { background: var(--panel); border: var(--b) solid var(--ink); box-shadow: 5px 5px 0 var(--hard); padding: 16px; }
+  .cbox .ct { font-family: 'Silkscreen'; font-size: 9px; color: var(--ink-dim); letter-spacing: 1px; margin-bottom: 12px; }
+  .cbox .demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* sprites */
+  .spritebar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; background: var(--panel); border: var(--b) solid var(--ink); box-shadow: 5px 5px 0 var(--hard); padding: 18px; }
+  .iconbar { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; }
+  .iconbar .ib { width: 40px; height: 40px; display: grid; place-items: center; background: var(--panel-2); border: 2px solid var(--ink); color: var(--money); }
+
+  /* screens gallery */
+  .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .gcard { border: var(--b) solid var(--ink); box-shadow: 6px 6px 0 var(--hard); background: var(--panel); overflow: hidden; }
+  .gframe { position: relative; height: 280px; overflow: hidden; background: #0c0d18; border-bottom: var(--b) solid var(--ink); }
+  .gframe iframe { position: absolute; top: 0; left: 0; width: 200%; height: 200%; transform: scale(.5); transform-origin: top left; border: 0; pointer-events: none; }
+  .gcard .gf { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .gcard .gf .gt { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 15px; }
+  .gcard .gf .gd { font-family: 'DotGothic16'; font-size: 10px; color: var(--ink-dim); }
+  .gcard .gf .btn { margin-left: auto; }
+  .gcard a.cover { position: absolute; inset: 0; z-index: 5; }
+</style>
+</head>
+<body class="crt">
+  <div class="topbar">
+    <span id="logo"></span>
+    <span class="name">Pay<span>Pulse</span> 薪跳</span>
+    <span class="chip" style="margin-left:6px">PIXEL DESIGN SYSTEM v1</span>
+    <div class="right">
+      <button class="tb" id="lang">中</button>
+      <button class="tb" id="theme"></button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="coinstage" id="herostage"></div>
+      <h1>ARCADE<br><span class="y">TREASURY</span> METER</h1>
+      <div class="tag">8-BIT · CRT · SWEETIE-16 · 中英双语</div>
+      <div class="desc">把工资变成街机金库的进账脉搏 —— 每秒一枚像素金币飘入，数字咔嚓跳动。复古像素美学，可调透明度，深/浅双主题。</div>
+      <div class="heromoney">
+        <div class="label" data-i18n="today">EARNED TODAY</div>
+        <div class="money" id="heroMoney"><span class="cur">¥</span><span id="hWhole">238</span><span class="dot">.</span><span class="dec" id="hDec">71</span></div>
+      </div>
+    </div>
+
+    <!-- PALETTE -->
+    <section>
+      <div class="shead"><span class="n">01</span><h2>Palette · Sweetie-16</h2><div class="ln"></div></div>
+      <div class="pal" id="pal"></div>
+      <div class="roles" id="roles"></div>
+    </section>
+
+    <!-- TYPE -->
+    <section>
+      <div class="shead"><span class="n">02</span><h2>Typography</h2><div class="ln"></div></div>
+      <div class="typecard">
+        <div class="specimen"><div class="meta">DISPLAY · Pixelify Sans 700 — 巨型数字 / 标题</div>
+          <div class="font-display" style="font-size:40px;color:var(--money)">¥ 1,379.04 薪跳</div></div>
+        <div class="specimen"><div class="meta">BODY / CJK · DotGothic16 — 中英正文（点阵）</div>
+          <div class="font-cjk" style="font-size:18px">把每一秒的劳动，变成看得见的金币 · Turn every second into visible coins.</div></div>
+        <div class="specimen"><div class="meta">READOUT · VT323 — 计时 / 数值读数</div>
+          <div class="font-term" style="font-size:26px;color:var(--accentA)">02:13:40 · +¥0.0479/s · 62%</div></div>
+        <div class="specimen"><div class="meta">LABEL · Silkscreen — 标签 / 徽章</div>
+          <div class="font-label" style="font-size:12px;letter-spacing:2px;color:var(--ink-dim)">EARNED TODAY · THIS WEEK · MILESTONE</div></div>
+      </div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section>
+      <div class="shead"><span class="n">03</span><h2>Components</h2><div class="ln"></div></div>
+      <div class="cgrid">
+        <div class="cbox"><div class="ct">BUTTONS</div><div class="demo">
+          <button class="btn go" id="b1"></button><button class="btn pause">PAUSE</button><button class="btn stop">STOP</button><button class="btn ghost">GHOST</button></div></div>
+        <div class="cbox"><div class="ct">TOGGLES</div><div class="demo">
+          <div class="toggle" role="switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"><span class="knob"></span></div>
+          <div class="toggle" role="switch" aria-checked="false" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"><span class="knob"></span></div>
+          <span class="chip live">LIVE</span><span class="chip">IDLE</span></div></div>
+        <div class="cbox"><div class="ct">SLIDER · OPACITY</div><div class="demo">
+          <input type="range" class="slider" min="0" max="100" value="72" style="width:100%"></div></div>
+        <div class="cbox"><div class="ct">SEGMENTED</div><div class="demo">
+          <div class="seg"><button aria-pressed="true">DARK</button><button aria-pressed="false">LIGHT</button><button aria-pressed="false">AUTO</button></div></div>
+        <div class="cbox"><div class="ct">INPUT</div><div class="demo">
+          <input class="input" value="30000" style="width:120px"><span class="label">月薪 / MONTH</span></div></div>
+        <div class="cbox"><div class="ct">XP BAR · GOAL</div><div class="demo" style="display:block">
+          <div class="bar"><i style="width:62%"></i></div></div></div>
+      </div>
+    </section>
+
+    <!-- SPRITES -->
+    <section>
+      <div class="shead"><span class="n">04</span><h2>Sprites &amp; Icons</h2><div class="ln"></div></div>
+      <div class="spritebar" id="spritebar"></div>
+      <div class="iconbar" id="iconbar"></div>
+    </section>
+
+    <!-- SCREENS -->
+    <section>
+      <div class="shead"><span class="n">05</span><h2>Screens · 高保真原型</h2><div class="ln"></div></div>
+      <div class="gallery">
+        <div class="gcard"><div class="gframe"><iframe src="mini-window.html" scrolling="no"></iframe><a class="cover" href="mini-window.html" target="_blank"></a></div>
+          <div class="gf"><span id="g1"></span><div><div class="gt">置顶小窗 · Mini Window</div><div class="gd">巨型跳动数字 · 透明度可调 · 拖拽</div></div><a class="btn" href="mini-window.html" target="_blank">OPEN ▸</a></div></div>
+        <div class="gcard"><div class="gframe"><iframe src="tray.html" scrolling="no"></iframe><a class="cover" href="tray.html" target="_blank"></a></div>
+          <div class="gf"><span id="g2"></span><div><div class="gt">状态栏 · Tray / Menubar</div><div class="gd">钱币飘入 · mac/Win 双形态 · popover</div></div><a class="btn" href="tray.html" target="_blank">OPEN ▸</a></div></div>
+        <div class="gcard"><div class="gframe"><iframe src="main.html" scrolling="no"></iframe><a class="cover" href="main.html" target="_blank"></a></div>
+          <div class="gf"><span id="g3"></span><div><div class="gt">仪表盘 · Dashboard</div><div class="gd">趋势图 · 四宫格统计 · 连续打卡</div></div><a class="btn" href="main.html" target="_blank">OPEN ▸</a></div></div>
+        <div class="gcard"><div class="gframe"><iframe src="settings.html" scrolling="no"></iframe><a class="cover" href="settings.html" target="_blank"></a></div>
+          <div class="gf"><span id="g4"></span><div><div class="gt">设置 · Settings</div><div class="gd">薪资模型 · 实时费率 · 透明度/主题/语言</div></div><a class="btn" href="settings.html" target="_blank">OPEN ▸</a></div></div>
+      </div>
+    </section>
+  </div>
+
+<script src="sprites.js"></script>
+<script>
+  const K = window.PixelKit; let lang = 'zh', theme = 'dark';
+  document.getElementById('logo').innerHTML = K.SPRITE.coin(3);
+  document.getElementById('theme').innerHTML = K.icon('moon', 14);
+  ['g1','g2','g3','g4'].forEach((id,i)=>document.getElementById(id).innerHTML=K.SPRITE.coin(3));
+  document.getElementById('b1').innerHTML = K.icon('play',13) + ' CLOCK IN';
+  K.applyI18n(lang);
+
+  // palette swatches
+  const SW = [['#1a1c2c','void'],['#5d275d','plum'],['#b13e53','rose'],['#ef7d57','coral'],['#ffcd75','gold'],['#a7f070','lime'],['#38b764','green'],['#257179','teal'],['#29366f','navy'],['#3b5dc9','blue'],['#41a6f6','sky'],['#73eff7','cyan'],['#f4f4f4','white'],['#94b0c2','steel'],['#566c86','slate'],['#333c57','ink']];
+  document.getElementById('pal').innerHTML = SW.map(s=>`<div class="sw" style="background:${s[0]}"><span class="hex">${s[0].slice(1)}</span></div>`).join('');
+  const ROLES = [['var(--money)','MONEY · gold'],['var(--gain)','GAIN · lime'],['var(--accentA)','ACCENT · cyan'],['var(--danger)','DANGER · rose'],['var(--ink)','INK · white'],['var(--ink-dim)','MUTED · steel'],['var(--panel)','PANEL'],['var(--inset)','INSET']];
+  document.getElementById('roles').innerHTML = ROLES.map(r=>`<div class="role"><span class="chipc" style="background:${r[0]}"></span><span class="rt">${r[1]}</span></div>`).join('');
+
+  // sprites + icons
+  document.getElementById('spritebar').innerHTML =
+    K.SPRITE.coin(5) + K.SPRITE.coin(4) + K.SPRITE.bill(5) + K.SPRITE.buddy(6) + K.SPRITE.buddyBlink(6);
+  document.getElementById('iconbar').innerHTML = Object.keys(K.ICONS).map(n=>`<div class="ib" title="${n}">${K.icon(n,18)}</div>`).join('');
+
+  // hero live money + coinflow
+  let earned = 238.71; const rate = 0.0479; let last = performance.now();
+  function frame(now){ earned += rate*(now-last)/1000; last=now; const m=K.splitMoney(earned);
+    document.getElementById('hWhole').textContent=m.whole; document.getElementById('hDec').textContent=m.dec; requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+  const heroMoney = document.getElementById('heroMoney');
+  setInterval(()=>{ heroMoney.style.animation='none'; void heroMoney.offsetWidth; heroMoney.style.animation='numJump .42s steps(7)'; },1000);
+  K.CoinFlow(document.getElementById('herostage'), ()=>heroMoney, {minGap:360,maxGap:820,scale:3,edges:[2,3,1]}).start();
+
+  // theme / lang
+  document.getElementById('theme').onclick=()=>{ theme=theme==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',theme); document.getElementById('theme').innerHTML=K.icon(theme==='dark'?'moon':'sun',14); };
+  document.getElementById('lang').onclick=()=>{ lang=lang==='zh'?'en':'zh'; K.applyI18n(lang); document.getElementById('lang').textContent=lang==='zh'?'A':'中'; };
+</script>
+</body>
+</html>

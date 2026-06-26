@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Main dashboard window — core APIs only at M0; sql/store/notification granted in M4/M5/M6.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

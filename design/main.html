@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayPulse · Dashboard</title>
+<link rel="stylesheet" href="pixel.css" />
+<style>
+  body { display: grid; place-items: center; background: #0c0d18;
+    background-image: radial-gradient(120% 120% at 50% 0%, #1a1c2c 0%, #0c0d18 70%); padding: 18px; }
+  .window { width: 560px; background: var(--panel); border: var(--b) solid var(--ink);
+    box-shadow: 7px 7px 0 var(--hard); position: relative;
+    background-image: linear-gradient(45deg, var(--dither) 25%, transparent 25% 75%, var(--dither) 75%); background-size: var(--px) var(--px); }
+  .titlebar { display: flex; align-items: center; gap: 8px; padding: 7px 9px; background: var(--inset); border-bottom: var(--b) solid var(--ink); }
+  .titlebar .name { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+  .titlebar .name span { color: var(--money); }
+  .tb-btns { margin-left: auto; display: flex; gap: 5px; }
+  .tb-btn { width: 22px; height: 22px; display: grid; place-items: center; background: var(--panel-2); border: 2px solid var(--ink); color: var(--ink-dim); }
+  .tb-btn:hover { color: var(--money); }
+
+  .content { padding: 16px; display: grid; gap: 14px; }
+  /* hero */
+  .hero { display: flex; align-items: center; gap: 16px; }
+  .hero .left { flex: 1; }
+  .hero .money { font-size: 46px; }
+  .hero .money .digits { display: inline-block; }
+  .hero .meta { display: flex; gap: 14px; margin-top: 6px; }
+  .hero .meta .label { color: var(--ink-dim); } .hero .meta b { color: var(--accentA); font-family: 'VT323'; font-size: 17px; }
+  .coffee { font-family: 'DotGothic16'; font-size: 11px; color: var(--gain); margin-top: 4px; }
+
+  /* controls */
+  .controls { display: flex; gap: 10px; }
+  .controls .btn { flex: 1; justify-content: center; font-size: 14px; padding: 11px; }
+  .sess-pill { display: flex; align-items: center; gap: 7px; padding: 0 12px; background: var(--inset); border: var(--b) solid var(--ink); }
+  .sess-pill .v { font-family: 'VT323'; font-size: 20px; color: var(--money); }
+
+  /* stat grid */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat { padding: 10px; background: var(--panel-2); border: var(--b) solid var(--ink); box-shadow: var(--px) var(--px) 0 var(--hard); }
+  .stat .k { font-family: 'Silkscreen'; font-size: 8px; letter-spacing: 1px; color: var(--ink-dim); }
+  .stat .v { font-family: 'DSEG7-Classic', 'VT323', monospace; font-weight: 700; font-size: 17px; letter-spacing: 1px; margin-top: 6px; white-space: nowrap; }
+  .stat .v .cur { font-family: 'Pixelify Sans', sans-serif; margin-right: 3px; font-size: 15px; }
+  .stat.a .v { color: var(--money); } .stat.b .v { color: var(--accentA); } .stat.c .v { color: var(--gain); } .stat.d .v { color: var(--accentB); }
+
+  /* trend */
+  .card { padding: 14px; background: var(--inset); border: var(--b) solid var(--ink); }
+  .card .hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .chart { display: flex; align-items: flex-end; gap: 10px; height: 110px; padding: 0 2px; }
+  .chart .bcol { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; height: 100%; }
+  .chart .bar { width: 100%; flex: none; background: repeating-linear-gradient(0deg, var(--accentA) 0 5px, var(--inset) 5px 6px);
+    border: 2px solid var(--ink); transition: height .5s steps(10); position: relative; }
+  .chart .bcol .val { margin-top: auto; }
+  .chart .bcol.today .bar { background: repeating-linear-gradient(0deg, var(--money) 0 5px, var(--inset) 5px 6px); }
+  .chart .bcol .day { font-family: 'Silkscreen'; font-size: 8px; color: var(--ink-dim); }
+  .chart .bcol.today .day { color: var(--money); }
+  .chart .bcol .val { font-family: 'VT323'; font-size: 12px; color: var(--ink-dim); }
+
+  /* goal */
+  .goal .hd { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .streak { display: flex; gap: 5px; align-items: center; }
+  .streak .d { width: 12px; height: 12px; background: var(--inset); border: 2px solid var(--ink); }
+  .streak .d.on { background: var(--gain-2); }
+</style>
+</head>
+<body class="crt">
+  <div class="window">
+    <div class="titlebar">
+      <span id="logo"></span>
+      <span class="name">Pay<span>Pulse</span> · 薪跳</span>
+      <span class="chip live" id="chip" data-i18n="working" style="margin-left:8px">WORKING</span>
+      <div class="tb-btns">
+        <button class="tb-btn" id="setbtn"></button>
+        <button class="tb-btn" id="minbtn"></button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- hero -->
+      <div class="hero">
+        <div class="left">
+          <div class="label" data-i18n="today">EARNED TODAY</div>
+          <div class="money" id="money" style="margin-top:4px">
+            <span class="cur">¥</span><span class="digits"><span class="seg-off" id="ghost">888.888</span><span class="lit"><span id="whole">238</span><span class="dot">.</span><span class="dec" id="dec">118</span></span></span>
+          </div>
+          <div class="meta">
+            <span><span class="label" data-i18n="perSec">PER SECOND</span> <b>¥0.048</b></span>
+            <span><span class="label" data-i18n="rate">HOURLY</span> <b>¥172</b></span>
+          </div>
+          <div class="coffee" id="coffee">☕ ≈ 0.6 杯精品手冲</div>
+        </div>
+      </div>
+
+      <!-- controls -->
+      <div class="controls">
+        <button class="btn pause" id="toggle"><span id="tico"></span><span data-i18n="pause">PAUSE</span></button>
+        <button class="btn stop hold" id="stop"><span id="sico"></span><span data-i18n="stop">CLOCK OUT</span></button>
+        <div class="sess-pill"><span class="label" data-i18n="session">SESSION</span><span class="v font-term" id="sess">02:13:40</span></div>
+      </div>
+
+      <!-- stats -->
+      <div class="stats">
+        <div class="stat a"><div class="k" data-i18n="today">TODAY</div><div class="v"><span class="cur">¥</span><span id="sToday">238</span></div></div>
+        <div class="stat b"><div class="k" data-i18n="week">WEEK</div><div class="v"><span class="cur">¥</span>1,204</div></div>
+        <div class="stat c"><div class="k" data-i18n="month">MONTH</div><div class="v"><span class="cur">¥</span>4,880</div></div>
+        <div class="stat d"><div class="k" data-i18n="total">ALL TIME</div><div class="v"><span class="cur">¥</span>58,240</div></div>
+      </div>
+
+      <!-- trend -->
+      <div class="card">
+        <div class="hd"><span class="label" data-i18n="trend">7-DAY TREND</span><span class="chip">¥/DAY</span></div>
+        <div class="chart" id="chart"></div>
+      </div>
+
+      <!-- goal + streak -->
+      <div class="card goal">
+        <div class="hd"><span class="label" data-i18n="goal">DAILY GOAL</span><span class="label" id="goalpct" style="color:var(--money)">62%</span></div>
+        <div class="bar"><i id="goalbar" style="width:62%"></i></div>
+        <div class="hd" style="margin:12px 0 0">
+          <span class="label">🔥 STREAK · 5 DAYS</span>
+          <div class="streak" id="streak"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="sprites.js"></script>
+<script>
+  const K = window.PixelKit; let lang = 'zh', working = true;
+  const DECIMALS = 3;
+  document.getElementById('logo').innerHTML = K.SPRITE.coin(3);
+  document.getElementById('setbtn').innerHTML = K.icon('settings', 13);
+  document.getElementById('minbtn').innerHTML = K.icon('minimize', 13);
+  document.getElementById('tico').innerHTML = K.icon('pause', 13);
+  document.getElementById('sico').innerHTML = K.icon('stop', 13);
+  K.applyI18n(lang);
+
+  // top-right buttons: only Settings + Minimize (hover tooltips)
+  const TIPS = { setbtn: { zh: '设置', en: 'Settings' }, minbtn: { zh: '最小化', en: 'Minimize' } };
+  for (const id in TIPS) document.getElementById(id).setAttribute('data-tip', TIPS[id][lang]);
+  document.getElementById('setbtn').onclick = () => window.open('settings.html', '_blank');
+  document.getElementById('minbtn').onclick = () => {
+    const win = document.querySelector('.window'), r = win.getBoundingClientRect();
+    const dx = window.innerWidth - r.left - r.width / 2, dy = -r.top - r.height / 2 + 12;
+    win.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: 0 }],
+      { duration: 360, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }).onfinish = () =>
+      setTimeout(() => win.animate([{ transform: `translate(${dx}px,${dy}px) scale(.05)`, opacity: 0 }, { transform: 'none', opacity: 1 }],
+        { duration: 300, easing: 'steps(6)', fill: 'forwards' }), 900);
+  };
+
+  // trend chart
+  const days = [['Mon', 168], ['Tue', 204], ['Wed', 152], ['Thu', 230], ['Fri', 188], ['Sat', 96], ['Sun', 238]];
+  const max = 260; const BARMAX = 84; const chart = document.getElementById('chart');
+  days.forEach((d, i) => {
+    const col = document.createElement('div'); col.className = 'bcol' + (i === 6 ? ' today' : '');
+    col.innerHTML = `<div class="val">¥${d[1]}</div><div class="bar" style="height:0"></div><div class="day">${d[0]}</div>`;
+    chart.appendChild(col);
+    setTimeout(() => { col.querySelector('.bar').style.height = (d[1] / max * BARMAX) + 'px'; }, 120 + i * 80);
+  });
+
+  // streak dots
+  const st = document.getElementById('streak');
+  for (let i = 0; i < 7; i++) { const d = document.createElement('span'); d.className = 'd' + (i < 5 ? ' on' : ''); st.appendChild(d); }
+
+  // earnings engine
+  let earned = 238.71; const rate = 0.0479; const goal = 383; let last = performance.now();
+  function render() {
+    const m = K.splitMoney(earned, DECIMALS);
+    document.getElementById('whole').textContent = m.whole; document.getElementById('dec').textContent = m.dec;
+    document.getElementById('ghost').textContent = m.whole.replace(/\d/g, '8') + '.' + '8'.repeat(DECIMALS);
+    document.getElementById('sToday').textContent = m.whole;
+    const pct = Math.min(100, Math.round(earned / goal * 100));
+    document.getElementById('goalbar').style.width = pct + '%'; document.getElementById('goalpct').textContent = pct + '%';
+    document.getElementById('coffee').textContent = '☕ ≈ ' + (earned / 38).toFixed(1) + (lang === 'zh' ? ' 杯精品手冲' : ' specialty pour-overs');
+  }
+  // grow today's bar on the 1s beat (per-frame churn would fight the CSS transition)
+  function growToday() {
+    const tb = chart.querySelector('.bcol.today .bar'); if (tb) tb.style.height = Math.min(BARMAX, earned / max * BARMAX) + 'px';
+    chart.querySelector('.bcol.today .val').textContent = '¥' + K.splitMoney(earned).whole;
+  }
+  growToday();
+  function frame(now) { if (working) earned += rate * (now - last) / 1000; last = now; render(); requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+
+  const moneyEl = document.getElementById('money');
+  setInterval(() => { if (!working) return; moneyEl.style.animation = 'none'; void moneyEl.offsetWidth; moneyEl.style.animation = 'numJump .42s steps(7)'; growToday(); }, 1000);
+
+  // coin flow into hero number
+  const flow = K.CoinFlow(document.querySelector('.window'), () => moneyEl, { minGap: 520, maxGap: 1200, scale: 3 });
+  flow.start();
+
+  // 下班 = long-press to confirm (anti mis-tap)
+  K.holdToConfirm(document.getElementById('stop'), {
+    ms: 800,
+    onConfirm: () => {
+      working = false; flow.stop();
+      const chip = document.getElementById('chip');
+      chip.classList.remove('live'); chip.dataset.i18n = 'idle'; chip.textContent = K.t('idle', lang);
+      const tg = document.getElementById('toggle');
+      tg.classList.remove('pause'); tg.classList.add('go');
+      document.getElementById('tico').innerHTML = K.icon('play', 13);
+      const l = tg.querySelector('[data-i18n]'); l.dataset.i18n = 'start'; l.textContent = K.t('start', lang);
+    },
+  });
+
+  // controls
+  document.getElementById('toggle').onclick = (e) => {
+    working = !working;
+    const chip = document.getElementById('chip'), lbl = e.currentTarget.querySelector('[data-i18n]');
+    document.getElementById('tico').innerHTML = K.icon(working ? 'pause' : 'play', 13);
+    e.currentTarget.classList.toggle('go', !working); e.currentTarget.classList.toggle('pause', working);
+    chip.classList.toggle('live', working); chip.dataset.i18n = working ? 'working' : 'paused';
+    lbl.dataset.i18n = working ? 'pause' : 'resume';
+    chip.textContent = K.t(chip.dataset.i18n, lang); lbl.textContent = K.t(lbl.dataset.i18n, lang);
+    working ? flow.start() : flow.stop();
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "popover",
+  "description": "Tray dropdown popover — core APIs at M0; positioner granted in M2.",
+  "windows": ["popover"],
+  "permissions": ["core:default"]
+}

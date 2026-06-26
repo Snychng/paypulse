@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "mini",
+  "description": "Frameless always-on-top mini window — core APIs + frameless drag/resize + window-state. sql/store granted in M5.",
+  "windows": ["mini"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-start-resize-dragging",
+    "core:window:allow-set-size",
+    "window-state:default"
+  ]
+}

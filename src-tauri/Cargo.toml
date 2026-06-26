@@ -1,0 +1,57 @@
+[package]
+name = "paypulse"
+version = "0.1.0"
+description = "PayPulse 薪跳 — cross-platform real-time per-second earnings counter"
+authors = ["YuchengSun"]
+license = "MIT"
+repository = ""
+edition = "2021"
+rust-version = "1.82"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix avoids name collision with the `paypulse` binary on Windows.
+name = "paypulse_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# tray-icon: tray/menubar; image-png/image-ico: optional Windows tray-icon redraw (PLAN §1.4);
+# macos-private-api: required by tauri.conf.json app.macOSPrivateApi=true for the translucent mini window (D5)
+tauri = { version = "2", features = ["tray-icon", "image-png", "image-ico", "macos-private-api"] }
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-store = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+# tray-icon feature lets positioner anchor windows to the tray (needs on_tray_event forwarding)
+tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
+tauri-plugin-window-state = "2"
+tauri-plugin-os = "2"
+tauri-plugin-log = "2"
+
+# Rust-authoritative persistence: same sqlx version tauri-plugin-sql uses, so the
+# crate graph stays deduped. Engine writes the durable truth directly (PLAN §1.2).
+sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
+
+# 🔑 highest-value correctness dep: SuspendUnawareInstant ignores system sleep on Win+mac (PLAN §1.1)
+suspend-time = "0.1"
+# wall-clock timestamps + local-calendar-day accounting (never used for billing duration)
+chrono = { version = "0.4", features = ["clock"] }
+tokio = { version = "1", features = ["time", "sync", "rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+log = "0.4"
+
+[dev-dependencies]
+proptest = "1"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

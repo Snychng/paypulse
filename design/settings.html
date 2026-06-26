@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark" data-lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PayPulse · Settings</title>
+<link rel="stylesheet" href="pixel.css" />
+<style>
+  body { display: grid; place-items: center; background: #0c0d18;
+    background-image: radial-gradient(120% 120% at 50% 0%, #1a1c2c 0%, #0c0d18 70%); padding: 18px; }
+  .window { width: 520px; background: var(--panel); border: var(--b) solid var(--ink); box-shadow: 7px 7px 0 var(--hard);
+    background-image: linear-gradient(45deg, var(--dither) 25%, transparent 25% 75%, var(--dither) 75%); background-size: var(--px) var(--px); }
+  .titlebar { display: flex; align-items: center; gap: 8px; padding: 7px 9px; background: var(--inset); border-bottom: var(--b) solid var(--ink); }
+  .titlebar .name { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+  .titlebar .name span { color: var(--money); }
+  .tb-btns { margin-left: auto; display: flex; gap: 5px; }
+  .tb-btn { width: 22px; height: 22px; display: grid; place-items: center; background: var(--panel-2); border: 2px solid var(--ink); color: var(--ink-dim); }
+
+  .content { padding: 16px; display: grid; gap: 14px; max-height: 74vh; }
+  .section { background: var(--inset); border: var(--b) solid var(--ink); }
+  .section > .sh { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 2px dashed var(--line); }
+  .section > .sh .t { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 13px; letter-spacing: 1px; }
+  .section > .sh span.ico { color: var(--money); }
+  .sbody { padding: 12px; display: grid; gap: 12px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .field .label { margin-bottom: 5px; display: block; }
+  .opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .opt .desc { font-family: 'DotGothic16'; font-size: 11px; color: var(--ink-dim); margin-top: 3px; }
+  .opt .ttl { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 13px; }
+
+  /* live rate preview */
+  .preview { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px;
+    background: var(--panel-2); border: var(--b) solid var(--ink); }
+  .preview .big { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 26px; color: var(--gain); text-shadow: 2px 2px 0 var(--inset); }
+  .preview .lbls { text-align: right; } .preview .lbls b { color: var(--money); font-family: 'VT323'; font-size: 16px; }
+
+  /* opacity preview swatch on a mini wallpaper */
+  .opwrap { display: flex; align-items: center; gap: 12px; }
+  .opmini { width: 64px; height: 44px; flex: none; border: var(--b) solid var(--ink); position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #3b1d5e, #b13e53 70%, #ef7d57); }
+  .opmini .pane { position: absolute; inset: 8px; background: var(--panel); border: 2px solid var(--ink);
+    display: grid; place-items: center; }
+  .opmini .pane .n { font-family: 'Pixelify Sans'; font-weight: 700; font-size: 11px; color: var(--money); }
+
+  /* overtime stepper */
+  .stepper { display: inline-flex; border: var(--b) solid var(--ink); }
+  .stepper button { width: 30px; background: var(--panel-2); border: none; color: var(--ink); font-family: 'Pixelify Sans'; font-weight: 700; }
+  .stepper button:active { background: var(--money); color: var(--inset); }
+  .stepper .val { width: 56px; display: grid; place-items: center; background: var(--inset); font-family: 'VT323'; font-size: 20px; color: var(--money); border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+
+  .footer { display: flex; gap: 10px; padding: 14px 16px; border-top: var(--b) solid var(--ink); background: var(--inset); }
+  .footer .btn { flex: 1; justify-content: center; }
+  .footer .btn.save { flex: 2; }
+</style>
+</head>
+<body class="crt">
+  <div class="window">
+    <div class="titlebar">
+      <span id="logo"></span>
+      <span class="name">Pay<span>Pulse</span> · <span data-i18n="settings" style="color:var(--ink)">SETTINGS</span></span>
+      <div class="tb-btns"><button class="tb-btn" id="close"></button></div>
+    </div>
+
+    <div class="content scroll">
+      <!-- PAY MODEL -->
+      <div class="section">
+        <div class="sh"><span class="ico" id="ic1"></span><span class="t" data-i18n="pay_model">PAY MODEL</span></div>
+        <div class="sbody">
+          <div class="seg" id="modeSeg" style="box-shadow:none">
+            <button aria-pressed="true" data-i18n="monthly">MONTHLY</button>
+            <button aria-pressed="false" data-i18n="hourly">HOURLY</button>
+            <button aria-pressed="false" data-i18n="yearly">YEARLY</button>
+          </div>
+          <div class="row3">
+            <div class="field"><span class="label" data-i18n="salary">MONTHLY SALARY</span><input class="input" id="salary" value="30000" /></div>
+            <div class="field"><span class="label" data-i18n="hours">HOURS / DAY</span><input class="input" id="hours" value="8" /></div>
+            <div class="field"><span class="label" data-i18n="workdays">WORKDAYS / MO</span><input class="input" id="wdays" value="21.75" /></div>
+          </div>
+          <div class="preview">
+            <div><div class="label" data-i18n="perSec">PER SECOND</div><div class="big" id="pvSec">¥0.0479</div></div>
+            <div class="lbls">
+              <div class="label" data-i18n="rate">HOURLY</div><b id="pvHour">¥172.4</b><br>
+              <div class="label" style="margin-top:4px" data-i18n="goal">DAILY GOAL</div><b id="pvDay">¥1,379</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="section">
+        <div class="sh"><span class="ico" id="ic2"></span><span class="t" data-i18n="appearance">APPEARANCE</span></div>
+        <div class="sbody">
+          <div class="field">
+            <span class="label" data-i18n="opacity">WINDOW OPACITY</span>
+            <div class="opwrap">
+              <div class="opmini"><div class="pane" id="opPane"><span class="n" id="opPaneN">¥238.118</span></div></div>
+              <input type="range" class="slider grow" id="op" min="35" max="100" value="92" />
+              <span class="font-term" style="font-size:18px;color:var(--money);width:42px;text-align:right" id="opv">92%</span>
+            </div>
+          </div>
+          <div class="opt">
+            <div><div class="ttl" data-i18n="decimals">DECIMALS</div><div class="desc" data-i18n="decimals_desc">Fraction digits on the counter</div></div>
+            <div class="seg" id="decSeg" style="box-shadow:none">
+              <button data-d="0">0</button>
+              <button data-d="1">1</button>
+              <button data-d="2">2</button>
+              <button data-d="3" aria-pressed="true">3</button>
+              <button data-d="4">4</button>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><span class="label" data-i18n="theme">THEME</span>
+              <div class="seg" id="themeSeg" style="box-shadow:none">
+                <button aria-pressed="true" data-th="dark">DARK</button>
+                <button aria-pressed="false" data-th="light">LIGHT</button>
+                <button aria-pressed="false" data-th="auto">AUTO</button>
+              </div>
+            </div>
+            <div class="field"><span class="label" data-i18n="lang">LANGUAGE</span>
+              <div class="seg" id="langSeg" style="box-shadow:none">
+                <button aria-pressed="true" data-l="zh">中文</button>
+                <button aria-pressed="false" data-l="en">EN</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEHAVIOR -->
+      <div class="section">
+        <div class="sh"><span class="ico" id="ic3"></span><span class="t">BEHAVIOR</span></div>
+        <div class="sbody">
+          <div class="opt">
+            <div><div class="ttl" data-i18n="notify">MILESTONE ALERTS</div><div class="desc" data-i18n="notify_desc">Ping on each round milestone</div></div>
+            <div class="toggle" id="tgNotify" role="switch" aria-checked="true"><span class="knob"></span></div>
+          </div>
+          <div class="opt">
+            <div><div class="ttl" data-i18n="autostart">LAUNCH ON START</div><div class="desc" data-i18n="auto_desc">Run in tray at login</div></div>
+            <div class="toggle" id="tgAuto" role="switch" aria-checked="false"><span class="knob"></span></div>
+          </div>
+          <div class="opt">
+            <div><div class="ttl" data-i18n="overtime">OVERTIME RATE</div><div class="desc" data-i18n="ot_desc">Multiplier past daily hours</div></div>
+            <div class="stepper" id="ot"><button data-d="-1">−</button><div class="val" id="otv">1.5×</div><button data-d="1">+</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn ghost" id="cancel">CANCEL</button>
+      <button class="btn save go" id="save"><span id="saveico"></span><span data-i18n="save">SAVE</span></button>
+    </div>
+  </div>
+
+<script src="sprites.js"></script>
+<script>
+  const K = window.PixelKit; let lang = 'zh', theme = 'dark';
+  document.getElementById('logo').innerHTML = K.SPRITE.coin(3);
+  document.getElementById('close').innerHTML = K.icon('close', 13);
+  document.getElementById('ic1').innerHTML = K.icon('chart', 14);
+  document.getElementById('ic2').innerHTML = K.icon('sun', 14);
+  document.getElementById('ic3').innerHTML = K.icon('settings', 14);
+  document.getElementById('saveico').innerHTML = K.icon('power', 13);
+  K.applyI18n(lang);
+
+  // live rate preview
+  function recompute() {
+    const sal = parseFloat(document.getElementById('salary').value) || 0;
+    const h = parseFloat(document.getElementById('hours').value) || 1;
+    const wd = parseFloat(document.getElementById('wdays').value) || 1;
+    const daily = sal / wd; const hourly = daily / h; const sec = hourly / 3600;
+    document.getElementById('pvSec').textContent = '¥' + sec.toFixed(4);
+    document.getElementById('pvHour').textContent = '¥' + hourly.toFixed(1);
+    document.getElementById('pvDay').textContent = '¥' + Math.round(daily).toLocaleString('en-US');
+  }
+  ['salary', 'hours', 'wdays'].forEach(id => document.getElementById(id).addEventListener('input', recompute));
+  recompute();
+
+  // pay-mode seg (swap salary label)
+  document.querySelectorAll('#modeSeg button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#modeSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  });
+
+  // opacity
+  const op = document.getElementById('op');
+  op.addEventListener('input', () => {
+    document.getElementById('opPane').style.opacity = op.value / 100;
+    document.getElementById('opv').textContent = op.value + '%';
+  });
+  document.getElementById('opPane').style.opacity = 0.92;
+
+  // theme seg
+  document.querySelectorAll('#themeSeg button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#themeSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const th = b.dataset.th; theme = th === 'auto' ? 'dark' : th;
+    document.documentElement.setAttribute('data-theme', theme);
+  });
+  // lang seg
+  document.querySelectorAll('#langSeg button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#langSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    lang = b.dataset.l; K.applyI18n(lang);
+  });
+
+  // decimals seg → live preview on the opacity sample number
+  const sampleVal = 238.118392;
+  function renderDec(d) {
+    const m = K.splitMoney(sampleVal, d);
+    document.getElementById('opPaneN').textContent = '¥' + m.whole + (d > 0 ? '.' + m.dec : '');
+  }
+  document.querySelectorAll('#decSeg button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#decSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderDec(+b.dataset.d);
+  });
+  renderDec(3);
+
+  // toggles
+  document.querySelectorAll('.toggle').forEach(tg => tg.onclick = () => tg.setAttribute('aria-checked', tg.getAttribute('aria-checked') !== 'true'));
+
+  // overtime stepper
+  let ot = 1.5;
+  document.querySelectorAll('#ot button').forEach(b => b.onclick = () => {
+    ot = Math.min(3, Math.max(1, +(ot + 0.1 * (+b.dataset.d)).toFixed(1)));
+    document.getElementById('otv').textContent = ot.toFixed(1) + '×';
+  });
+
+  // save feedback
+  document.getElementById('save').onclick = (e) => {
+    const b = e.currentTarget; const old = b.querySelector('[data-i18n]').textContent;
+    b.querySelector('[data-i18n]').textContent = '✓ SAVED'; b.classList.add('wig');
+    setTimeout(() => { b.querySelector('[data-i18n]').textContent = old; b.classList.remove('wig'); }, 1200);
+  };
+</script>
+</body>
+</html>
