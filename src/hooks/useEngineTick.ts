@@ -22,6 +22,7 @@ import type { EngineStatus } from "@/shared/types";
 export interface TickMeta {
   todayCents: number;
   sessionCents: number;
+  sessionActiveSecs: number;
   perSecondCents: number;
   status: EngineStatus;
   isOvertime: boolean;
@@ -32,6 +33,7 @@ export interface TickMeta {
 const INITIAL_META: TickMeta = {
   todayCents: 0,
   sessionCents: 0,
+  sessionActiveSecs: 0,
   perSecondCents: 0,
   status: "idle",
   isOvertime: false,
@@ -61,6 +63,7 @@ export function useEngineTick(): UseEngineTick {
         setMeta({
           todayCents: s.todayCents,
           sessionCents: s.sessionCents,
+          sessionActiveSecs: s.sessionActiveSecs,
           perSecondCents: s.perSecondCents,
           status: s.state,
           isOvertime: s.isOvertime,
@@ -77,6 +80,7 @@ export function useEngineTick(): UseEngineTick {
       setMeta({
         todayCents: p.todayCents,
         sessionCents: p.sessionCents,
+        sessionActiveSecs: p.sessionActiveSecs,
         perSecondCents: p.perSecondCents,
         status: p.state,
         isOvertime: p.isOvertime,
@@ -95,6 +99,7 @@ export function useEngineTick(): UseEngineTick {
       setMeta((prev) => ({
         ...prev,
         todayCents: p.todayCents,
+        sessionActiveSecs: p.sessionActiveSecs,
         status: p.state,
         localDate: p.localDate,
         sessionId: p.sessionId,

@@ -160,6 +160,13 @@ impl EngineState {
         (self.today_cents() - anchor).max(0)
     }
 
+    pub fn session_active_secs(&self) -> f64 {
+        if self.status == Status::Idle {
+            return 0.0;
+        }
+        (self.accumulated_active_secs - self.session_anchor_active_secs).max(0.0)
+    }
+
     pub fn is_overtime(&self) -> bool {
         rate::is_overtime(
             self.accumulated_active_secs,
@@ -233,6 +240,7 @@ mod tests {
         s.accumulated_active_secs = 80.0;
         assert_eq!(s.today_cents(), 80);
         assert_eq!(s.session_cents(), 30);
+        assert_eq!(s.session_active_secs(), 30.0);
     }
 
     #[test]

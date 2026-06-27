@@ -6,12 +6,10 @@
 
 use std::time::Duration;
 
-use chrono::Local;
-use suspend_time::SuspendUnawareInstant;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::app_state::AppState;
-use crate::engine::{apply_tick, Status, TickInput};
+use crate::engine::{apply_tick, Status};
 use crate::ipc::{
     ChangeReason, MilestonePayload, StateChangedPayload, TickPayload, EVENT_MILESTONE,
     EVENT_STATE_CHANGED, EVENT_TICK,
@@ -27,21 +25,10 @@ pub fn spawn_engine_loop(app: AppHandle) {
         let mut interval = tokio::time::interval(Duration::from_secs(1));
         interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
-        let mut last_wall = Local::now();
-        let mut last_mono = SuspendUnawareInstant::now();
         let mut secs_since_flush = 0u32;
 
         loop {
             interval.tick().await;
-
-            let now_wall = Local::now();
-            let now_mono = SuspendUnawareInstant::now();
-            // wall delta includes sleep (can briefly go backwards on NTP/DST → clamp);
-            // mono delta excludes sleep (the active time we actually bill).
-            let wall_delta = (now_wall - last_wall).num_milliseconds().max(0) as f64 / 1000.0;
-            let mono_delta = (now_mono - last_mono).as_secs_f64();
-            last_wall = now_wall;
-            last_mono = now_mono;
 
             let state = app.state::<AppState>();
             #[allow(clippy::type_complexity)]
@@ -55,19 +42,15 @@ pub fn spawn_engine_loop(app: AppHandle) {
                 threshold,
                 date,
             ) = {
+                let mut clock = state.clock.lock().await;
+                let input = clock.next_tick_input();
                 let mut eng = state.engine.lock().await;
-                let out = apply_tick(
-                    &mut eng,
-                    &TickInput {
-                        mono_delta_secs: mono_delta,
-                        wall_delta_secs: wall_delta,
-                        wall_now: now_wall,
-                    },
-                );
+                let out = apply_tick(&mut eng, &input);
 
                 let payload = TickPayload {
                     today_cents: out.today_cents,
                     session_cents: out.session_cents,
+                    session_active_secs: eng.session_active_secs(),
                     per_second_cents: out.per_second_cents,
                     state: eng.status,
                     is_overtime: out.is_overtime,
@@ -88,6 +71,7 @@ pub fn spawn_engine_loop(app: AppHandle) {
                         session_id: eng.session_id.clone(),
                         reason,
                         today_cents: out.today_cents,
+                        session_active_secs: eng.session_active_secs(),
                         local_date: out.local_date.to_string(),
                     })
                 } else {
@@ -211,7 +195,7 @@ fn update_tray(app: &AppHandle, status: Status, today_cents: i64) {
             let st = app.state::<AppState>();
             let mut last = st.last_tray_cents.lock().unwrap();
             if *last != today_cents {
-                let _ = tray.set_title(Some(format!("💰 {money}")));
+                let _ = tray.set_title(Some(money));
                 *last = today_cents;
             }
             let _ = status;

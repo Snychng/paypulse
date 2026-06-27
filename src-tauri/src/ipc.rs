@@ -25,6 +25,7 @@ pub enum ChangeReason {
 pub struct TickPayload {
     pub today_cents: i64,
     pub session_cents: i64,
+    pub session_active_secs: f64,
     pub per_second_cents: f64,
     pub state: Status,
     pub is_overtime: bool,
@@ -38,6 +39,7 @@ pub struct TickPayload {
 pub struct Snapshot {
     pub today_cents: i64,
     pub session_cents: i64,
+    pub session_active_secs: f64,
     pub per_second_cents: f64,
     pub state: Status,
     pub is_overtime: bool,
@@ -52,6 +54,7 @@ pub struct StateChangedPayload {
     pub session_id: Option<String>,
     pub reason: ChangeReason,
     pub today_cents: i64,
+    pub session_active_secs: f64,
     pub local_date: String,
 }
 

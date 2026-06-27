@@ -18,7 +18,12 @@ import type {
 } from "react";
 import { motion, useTransform } from "motion/react";
 import { useTranslation } from "react-i18next";
-import { cursorPosition, getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+import {
+  cursorPosition,
+  getCurrentWindow,
+  LogicalPosition,
+  LogicalSize,
+} from "@tauri-apps/api/window";
 
 import { useEngineTick } from "@/hooks/useEngineTick";
 import { useSettings } from "@/hooks/useSettings";
@@ -61,14 +66,37 @@ const MINI_MIN_HEIGHT = 56;
 const MINI_FALLBACK_PEEK_HEIGHT = 74;
 const MINI_FALLBACK_EXPANDED_HEIGHT = 320;
 const MINI_EXPANDED_SHADOW_PAD = 12;
-const EXPANDED_SIZE_STORAGE_KEY = "paypulse:mini:expanded-size";
+const EXPANDED_SIZE_STORAGE_KEY = "paypulse:mini:expanded-size:v2";
 const LEGACY_EXPANDED_HEIGHT_STORAGE_KEY = "paypulse:mini:expanded-height";
+const MINI_ANCHOR_SELECTOR = "#money";
+const MINI_COLLAPSIBLE_SELECTOR = ".titlebar, .statusline, .submeta, .goalrow, .ctrls";
+const MINI_MODE_CLASS_NAMES = [
+  "is-peek",
+  "is-expanded",
+  "is-w-compact",
+  "is-w-tiny",
+  "is-h-compact",
+  "is-h-short",
+  "is-h-tight",
+  "is-h-tiny",
+  "is-h-micro",
+  "is-resizing",
+] as const;
 
 type MiniWindowMode = "peek" | "expanded";
 
 interface MiniSize {
   width: number;
   height: number;
+}
+
+interface MiniAnchor {
+  x: number;
+  y: number;
+}
+
+interface MiniLayoutMetrics extends MiniSize {
+  anchor: MiniAnchor;
 }
 
 /* ---------- 小工具 ---------- */
@@ -89,7 +117,7 @@ function clampMiniHeight(height: number): number {
   return Math.max(MINI_MIN_HEIGHT, Math.round(height));
 }
 
-function normalizeMiniSize(size: MiniSize): MiniSize {
+function normalizeExpandedSize(size: MiniSize): MiniSize {
   return {
     width: clampMiniWidth(size.width),
     height: clampMiniHeight(size.height),
@@ -98,6 +126,53 @@ function normalizeMiniSize(size: MiniSize): MiniSize {
 
 function isSameMiniSize(a: MiniSize | null, b: MiniSize): boolean {
   return a?.width === b.width && a.height === b.height;
+}
+
+function getMiniSizeClassNames(size: MiniSize, isResizing = false): string[] {
+  return [
+    isResizing ? "is-resizing" : "",
+    size.width <= 250 ? "is-w-compact" : "",
+    size.width <= 210 ? "is-w-tiny" : "",
+    size.height <= 300 ? "is-h-compact" : "",
+    size.height <= 270 ? "is-h-short" : "",
+    size.height <= 220 ? "is-h-tight" : "",
+    size.height <= 175 ? "is-h-tiny" : "",
+    size.height <= 135 ? "is-h-micro" : "",
+  ].filter(Boolean);
+}
+
+function getMiniSizeClassName(size: MiniSize, isResizing = false): string {
+  return getMiniSizeClassNames(size, isResizing).join(" ");
+}
+
+function getMiniMoneySize(size: MiniSize, mode: MiniWindowMode): number {
+  return Math.round(
+    Math.max(
+      20,
+      Math.min(
+        58,
+        size.width * 0.14,
+        size.height * (mode === "peek" ? 0.58 : 0.22),
+      ),
+    ),
+  );
+}
+
+function readMiniAnchorOffset(winEl: HTMLElement, fallbackSize: MiniSize): MiniAnchor {
+  const winRect = winEl.getBoundingClientRect();
+  const anchorEl = winEl.querySelector<HTMLElement>(MINI_ANCHOR_SELECTOR);
+  if (!anchorEl || winRect.width <= 0 || winRect.height <= 0) {
+    return {
+      x: fallbackSize.width / 2,
+      y: fallbackSize.height / 2,
+    };
+  }
+
+  const anchorRect = anchorEl.getBoundingClientRect();
+  return {
+    x: anchorRect.left - winRect.left + anchorRect.width / 2,
+    y: anchorRect.top - winRect.top + anchorRect.height / 2,
+  };
 }
 
 function readStoredExpandedSize(): MiniSize | null {
@@ -130,10 +205,7 @@ function readStoredExpandedSize(): MiniSize | null {
 }
 
 function storeExpandedSize(size: MiniSize): void {
-  const normalized = {
-    width: clampMiniWidth(size.width),
-    height: clampMiniHeight(size.height),
-  };
+  const normalized = normalizeExpandedSize(size);
   try {
     window.localStorage.setItem(EXPANDED_SIZE_STORAGE_KEY, JSON.stringify(normalized));
   } catch {
@@ -148,7 +220,7 @@ interface GainFloater {
 }
 
 export default function App(): JSX.Element {
-  const { todayCents, perSecondCents, status, sessionId, todaySpring } =
+  const { todayCents, perSecondCents, sessionActiveSecs, status, todaySpring } =
     useEngineTick();
   const { settings } = useSettings();
   const { toggle, stop } = useEngineControls();
@@ -163,6 +235,9 @@ export default function App(): JSX.Element {
   const cursorInsideRef = useRef(false);
   const nativeTransitionSeqRef = useRef(0);
   const nativeResizingRef = useRef(false);
+  const programmaticResizingRef = useRef(false);
+  const programmaticResizeReleaseTimerRef = useRef<number | null>(null);
+  const lastProgrammaticSizeRef = useRef<MiniSize | null>(null);
   const preferredExpandedSizeRef = useRef<MiniSize | null>(readStoredExpandedSize());
   const saveExpandedSizeTimerRef = useRef<number | null>(null);
   const [isResizing, setIsResizing] = useState(false);
@@ -275,7 +350,7 @@ export default function App(): JSX.Element {
 
   const rememberExpandedSize = useCallback(
     (size: MiniSize, options?: { persistNow?: boolean }): void => {
-      const next = normalizeMiniSize(size);
+      const next = normalizeExpandedSize(size);
       const changed = !isSameMiniSize(preferredExpandedSizeRef.current, next);
       preferredExpandedSizeRef.current = next;
 
@@ -302,11 +377,34 @@ export default function App(): JSX.Element {
     [],
   );
 
+  const beginProgrammaticResize = useCallback((size: MiniSize): void => {
+    if (programmaticResizeReleaseTimerRef.current !== null) {
+      window.clearTimeout(programmaticResizeReleaseTimerRef.current);
+      programmaticResizeReleaseTimerRef.current = null;
+    }
+    programmaticResizingRef.current = true;
+    lastProgrammaticSizeRef.current = normalizeExpandedSize(size);
+  }, []);
+
+  const releaseProgrammaticResizeSoon = useCallback((): void => {
+    if (programmaticResizeReleaseTimerRef.current !== null) {
+      window.clearTimeout(programmaticResizeReleaseTimerRef.current);
+    }
+    programmaticResizeReleaseTimerRef.current = window.setTimeout(() => {
+      programmaticResizingRef.current = false;
+      programmaticResizeReleaseTimerRef.current = null;
+    }, 220);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (saveExpandedSizeTimerRef.current !== null) {
         window.clearTimeout(saveExpandedSizeTimerRef.current);
         saveExpandedSizeTimerRef.current = null;
+      }
+      if (programmaticResizeReleaseTimerRef.current !== null) {
+        window.clearTimeout(programmaticResizeReleaseTimerRef.current);
+        programmaticResizeReleaseTimerRef.current = null;
       }
     };
   }, []);
@@ -321,8 +419,21 @@ export default function App(): JSX.Element {
         prev.width === next.width && prev.height === next.height ? prev : next,
       );
 
-      // 只记录 expanded/手动拖拽下的真实尺寸；peek 的自动收缩高度不能污染用户偏好。
-      if (visualModeRef.current === "expanded" || nativeResizingRef.current) {
+      const isProgrammaticSize =
+        lastProgrammaticSizeRef.current !== null &&
+        isSameMiniSize(lastProgrammaticSizeRef.current, next);
+      const shouldRememberUserResize =
+        nativeResizingRef.current ||
+        (
+          visualModeRef.current === "expanded" &&
+          targetModeRef.current === "expanded" &&
+          !programmaticResizingRef.current &&
+          !isProgrammaticSize
+        );
+
+      // 只记录真实用户 resize；hover 展开/收起的程序化尺寸切换不能污染 expanded 偏好。
+      if (shouldRememberUserResize) {
+        lastProgrammaticSizeRef.current = null;
         rememberExpandedSize(next);
       }
     };
@@ -335,17 +446,32 @@ export default function App(): JSX.Element {
       });
     };
 
+    const readBorderBox = (entry: ResizeObserverEntry): MiniSize => {
+      const borderBox = Array.isArray(entry.borderBoxSize)
+        ? entry.borderBoxSize[0]
+        : entry.borderBoxSize;
+      if (borderBox) {
+        return {
+          width: Math.round(borderBox.inlineSize),
+          height: Math.round(borderBox.blockSize),
+        };
+      }
+
+      const rect = el.getBoundingClientRect();
+      return {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      };
+    };
+
     read();
     const ro = new ResizeObserver((entries) => {
-      const box = entries[0]?.contentRect;
-      if (!box) {
+      const entry = entries[0];
+      if (!entry) {
         read();
         return;
       }
-      applyObservedSize({
-        width: Math.round(box.width),
-        height: Math.round(box.height),
-      });
+      applyObservedSize(readBorderBox(entry));
     });
     ro.observe(el);
 
@@ -354,58 +480,82 @@ export default function App(): JSX.Element {
 
   /* ---------- 原生窗口 peek：对齐原型的 hover 收放 ----------
      这里不能让 CSS :hover 和 Tauri setSize 各走各的：setSize 是异步的，二者
-     不同步就会出现「视觉已展开但窗口还没长高」的裁切。改为单一 mode 驱动，
-     并用隐藏克隆按当前宽度测自然高度，避免手写高度常量继续漂。 */
+     不同步就会出现「视觉已展开但窗口还没长高」的裁切。改为单一 mode 驱动。
+     隐藏克隆同时测自然高度与金额锚点，让 hover 收放围绕数字区展开。 */
   const setVisualWindowMode = useCallback((mode: MiniWindowMode): void => {
     visualModeRef.current = mode;
     setWindowMode(mode);
   }, []);
 
-  const measureMiniHeight = useCallback((mode: MiniWindowMode, width: number): number => {
+  const measureMiniLayout = useCallback((
+    mode: MiniWindowMode,
+    width: number,
+    fixedHeight?: number,
+  ): MiniLayoutMetrics => {
     const winEl = winRef.current;
     if (!winEl) {
-      return mode === "expanded"
-        ? MINI_FALLBACK_EXPANDED_HEIGHT
-        : MINI_FALLBACK_PEEK_HEIGHT;
+      const height = fixedHeight ??
+        (mode === "expanded" ? MINI_FALLBACK_EXPANDED_HEIGHT : MINI_FALLBACK_PEEK_HEIGHT);
+      return {
+        width,
+        height,
+        anchor: {
+          x: width / 2,
+          y: height / 2,
+        },
+      };
     }
 
     const clone = winEl.cloneNode(true) as HTMLElement;
-    clone.classList.remove(
-      "is-peek",
-      "is-expanded",
-      "is-w-compact",
-      "is-w-tiny",
-      "is-h-compact",
-      "is-h-short",
-      "is-h-tight",
-      "is-h-tiny",
-      "is-h-micro",
-    );
+    clone.classList.remove(...MINI_MODE_CLASS_NAMES);
     clone.classList.add(mode === "expanded" ? "is-expanded" : "is-peek");
+    if (fixedHeight !== undefined) {
+      clone.classList.add(...getMiniSizeClassNames({ width, height: fixedHeight }));
+    }
     clone.style.position = "fixed";
     clone.style.left = "-10000px";
     clone.style.top = "0";
     clone.style.width = `${width}px`;
-    clone.style.height = "auto";
+    clone.style.height = fixedHeight === undefined ? "auto" : `${fixedHeight}px`;
     clone.style.minWidth = `${MINI_MIN_WIDTH}px`;
     clone.style.visibility = "hidden";
     clone.style.pointerEvents = "none";
     clone.style.opacity = "1";
     clone.style.transition = "none";
-    clone.querySelectorAll<HTMLElement>(".titlebar, .statusline, .submeta, .goalrow, .ctrls")
+    clone.style.setProperty(
+      "--mini-money-size",
+      `${getMiniMoneySize({
+        width,
+        height: fixedHeight ??
+          (mode === "expanded" ? MINI_FALLBACK_EXPANDED_HEIGHT : MINI_FALLBACK_PEEK_HEIGHT),
+      }, mode)}px`,
+    );
+    clone.querySelectorAll<HTMLElement>(MINI_COLLAPSIBLE_SELECTOR)
       .forEach((el) => {
         el.style.transition = "none";
       });
 
     document.body.appendChild(clone);
     const measured = Math.ceil(clone.getBoundingClientRect().height);
+    const measuredHeight = fixedHeight ?? measured;
+    const anchor = readMiniAnchorOffset(clone, {
+      width,
+      height: measuredHeight || MINI_FALLBACK_PEEK_HEIGHT,
+    });
     clone.remove();
 
-    const shadowPad = mode === "expanded" ? MINI_EXPANDED_SHADOW_PAD : 0;
+    const shadowPad =
+      fixedHeight === undefined && mode === "expanded" ? MINI_EXPANDED_SHADOW_PAD : 0;
     const fallback =
       mode === "expanded" ? MINI_FALLBACK_EXPANDED_HEIGHT : MINI_FALLBACK_PEEK_HEIGHT;
     const naturalHeight = Math.max(1, measured || fallback) + shadowPad;
-    return mode === "peek" ? Math.max(fallback, naturalHeight) : naturalHeight;
+    const height =
+      fixedHeight ?? (mode === "peek" ? Math.max(fallback, naturalHeight) : naturalHeight);
+    return {
+      width,
+      height,
+      anchor,
+    };
   }, []);
 
   const setNativeWindowMode = useCallback(
@@ -421,40 +571,86 @@ export default function App(): JSX.Element {
 
       targetModeRef.current = mode;
       const seq = ++nativeTransitionSeqRef.current;
+      let startedProgrammaticResize = false;
 
       try {
         const win = getCurrentWindow();
-        const [physicalSize, scaleFactor] = await Promise.all([
+        const [physicalSize, physicalPosition, scaleFactor] = await Promise.all([
           win.innerSize(),
+          win.outerPosition(),
           win.scaleFactor(),
         ]);
         const logicalSize = physicalSize.toLogical(scaleFactor);
+        const logicalPosition = physicalPosition.toLogical(scaleFactor);
         const currentWidth = clampMiniWidth(logicalSize.width);
+        const currentHeight = clampMiniHeight(logicalSize.height);
+        const currentSize = {
+          width: currentWidth,
+          height: currentHeight,
+        };
+        const currentAnchor = winRef.current
+          ? readMiniAnchorOffset(winRef.current, currentSize)
+          : {
+              x: currentWidth / 2,
+              y: currentHeight / 2,
+            };
         const preferredSize = preferredExpandedSizeRef.current;
         const width =
           mode === "expanded" && preferredSize
-            ? clampMiniWidth(preferredSize.width)
+            ? Math.max(currentWidth, clampMiniWidth(preferredSize.width))
             : currentWidth;
+        const naturalTargetLayout =
+          mode === "expanded" && preferredSize?.height
+            ? null
+            : measureMiniLayout(mode, width);
         const height =
           mode === "expanded"
-            ? clampMiniHeight(preferredSize?.height ?? measureMiniHeight("expanded", width))
-            : measureMiniHeight("peek", width);
+            ? clampMiniHeight(
+                preferredSize?.height ??
+                  naturalTargetLayout?.height ??
+                  MINI_FALLBACK_EXPANDED_HEIGHT,
+              )
+            : clampMiniHeight(naturalTargetLayout?.height ?? MINI_FALLBACK_PEEK_HEIGHT);
+        const targetLayout = measureMiniLayout(mode, width, height);
+        const nextPosition = new LogicalPosition(
+          Math.round(logicalPosition.x + currentAnchor.x - targetLayout.anchor.x),
+          Math.round(logicalPosition.y + currentAnchor.y - targetLayout.anchor.y),
+        );
 
         // 收缩时先切视觉状态，避免小窗变矮时仍显示完整控制区导致裁切。
         if (mode === "peek") setVisualWindowMode("peek");
 
         if (seq !== nativeTransitionSeqRef.current) return;
+        beginProgrammaticResize({ width, height });
+        startedProgrammaticResize = true;
         await win.setSize(new LogicalSize(width, height));
         if (seq !== nativeTransitionSeqRef.current || targetModeRef.current !== mode) return;
+        await win.setPosition(nextPosition);
+        if (seq !== nativeTransitionSeqRef.current || targetModeRef.current !== mode) return;
 
-        // 展开时先长高原生窗口，再显示完整 UI，彻底规避图二的中间态。
+        setMiniSize((prev) =>
+          prev.width === width && prev.height === height ? prev : { width, height },
+        );
+        // 几何切换完成后再切视觉状态，金额锚点已由 nextPosition 补偿。
         setVisualWindowMode(mode);
-      } catch {
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn("[PayPulse mini] Failed to apply anchored window geometry.", error);
+        }
         // 浏览器预览环境没有 Tauri window，仍允许用视觉状态检查布局。
         setVisualWindowMode(mode);
+      } finally {
+        if (startedProgrammaticResize) {
+          releaseProgrammaticResizeSoon();
+        }
       }
     },
-    [measureMiniHeight, setVisualWindowMode],
+    [
+      beginProgrammaticResize,
+      measureMiniLayout,
+      releaseProgrammaticResizeSoon,
+      setVisualWindowMode,
+    ],
   );
 
   useEffect(() => {
@@ -485,15 +681,10 @@ export default function App(): JSX.Element {
           cursor.y >= pos.y &&
           cursor.y <= pos.y + size.height;
         const nextMode: MiniWindowMode = inside ? "expanded" : "peek";
-        const crossedWindowEdge = cursorInsideRef.current !== inside;
         cursorInsideRef.current = inside;
 
-        if (
-          crossedWindowEdge ||
-          targetModeRef.current !== nextMode ||
-          visualModeRef.current !== nextMode
-        ) {
-          await setNativeWindowMode(nextMode, { force: crossedWindowEdge });
+        if (targetModeRef.current !== nextMode) {
+          await setNativeWindowMode(nextMode);
         }
       } catch {
         /* 浏览器预览/权限边界下不可用，保留 DOM mouseenter/mouseleave。 */
@@ -658,24 +849,9 @@ export default function App(): JSX.Element {
     return Math.min(100, Math.round((todayCents / goalCents) * 100));
   }, [todayCents, goalCents]);
 
-  /* ---------- session 计时：本地展示用计数器（非金额权威） ----------
-     引擎未在 tick/snapshot 中提供 session 时长字段，故本地计时：
-     - 仅在「工作中」每秒 +1；摸鱼/下班时冻结
-     - sessionId 变化（新一段工作）时归零
-     纯展示，不参与任何金额计算，符合「零金额权威」约束。 */
-  const [elapsedSecs, setElapsedSecs] = useState<number>(0);
-  const sessionIdRef = useRef<string | null>(sessionId);
-  useEffect(() => {
-    if (sessionId !== sessionIdRef.current) {
-      sessionIdRef.current = sessionId;
-      setElapsedSecs(0);
-    }
-    if (status !== "working") return;
-    const timer = window.setInterval(() => {
-      setElapsedSecs((s) => s + 1);
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [status, sessionId]);
+  /* ---------- session 计时：直接展示 Rust 引擎的活跃秒数 ----------
+     时间和金额同源，避免 WebView 本地 setInterval 与后端 tick 漂移。 */
+  const elapsedSecs = sessionActiveSecs;
 
   /* ---------- 透明度：跟随设置（透明开启时用 miniOpacityX100/100） ---------- */
   const miniOpacity =
@@ -688,28 +864,8 @@ export default function App(): JSX.Element {
   const toggleLabel = t(TOGGLE_KEY[status]);
   const statusLabel = t(STATUS_KEY[status]);
   const isLive = status === "working";
-  const moneySize = Math.round(
-    Math.max(
-      20,
-      Math.min(
-        58,
-        miniSize.width * 0.14,
-        miniSize.height * (windowMode === "peek" ? 0.58 : 0.22),
-      ),
-    ),
-  );
-  const sizeClasses = [
-    isResizing ? "is-resizing" : "",
-    miniSize.width <= 250 ? "is-w-compact" : "",
-    miniSize.width <= 210 ? "is-w-tiny" : "",
-    miniSize.height <= 300 ? "is-h-compact" : "",
-    miniSize.height <= 270 ? "is-h-short" : "",
-    miniSize.height <= 220 ? "is-h-tight" : "",
-    miniSize.height <= 175 ? "is-h-tiny" : "",
-    miniSize.height <= 135 ? "is-h-micro" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const moneySize = getMiniMoneySize(miniSize, windowMode);
+  const sizeClasses = getMiniSizeClassName(miniSize, isResizing);
   const miniStyle = {
     opacity: miniOpacity,
     "--mini-money-size": `${moneySize}px`,
@@ -728,18 +884,22 @@ export default function App(): JSX.Element {
         style={miniStyle}
         onMouseEnter={() => {
           cursorInsideRef.current = true;
-          void setNativeWindowMode("expanded", { force: true });
+          if (targetModeRef.current !== "expanded") {
+            void setNativeWindowMode("expanded");
+          }
         }}
         onPointerMove={() => {
           if (nativeResizingRef.current) return;
           cursorInsideRef.current = true;
-          if (targetModeRef.current !== "expanded" || visualModeRef.current !== "expanded") {
-            void setNativeWindowMode("expanded", { force: true });
+          if (targetModeRef.current !== "expanded") {
+            void setNativeWindowMode("expanded");
           }
         }}
         onMouseLeave={() => {
           cursorInsideRef.current = false;
-          void setNativeWindowMode("peek");
+          if (targetModeRef.current !== "peek") {
+            void setNativeWindowMode("peek");
+          }
         }}
       >
         {/* ---------- 标题栏（可拖拽） ---------- */}
@@ -939,6 +1099,10 @@ const MINI_CSS = `
 }
 .tb-btn:hover { color: var(--money); }
 .tb-btn.x:hover { color: var(--danger); }
+#win .tb-btn[data-tip]:hover::before,
+#win .tb-btn[data-tip]:hover::after {
+  display: none;
+}
 
 main.body {
   flex: 1 1 auto;
@@ -966,7 +1130,11 @@ main.body {
   user-select: none;
 }
 .readout:active { cursor: grabbing; }
-.money-wrap { position: relative; display: inline-block; }
+.money-wrap {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
 .ripple {
   position: absolute; left: 50%; top: 52%; width: 50px; height: 50px; margin: -25px;
   border: var(--b) solid var(--gain); border-radius: 50%; opacity: 0; pointer-events: none;
@@ -982,12 +1150,15 @@ main.body {
 }
 .gain.run { animation: gainFloat 1.1s steps(11) forwards; }
 .submeta {
+  flex: none;
   width: 100%;
   min-width: 0;
+  min-height: 18px;
   display: flex;
   justify-content: center;
   align-items: baseline;
   gap: 12px;
+  line-height: 18px;
   margin-top: 8px;
   color: var(--ink-dim);
   white-space: nowrap;
@@ -1008,9 +1179,23 @@ main.body {
 }
 .submeta b { color: var(--accentA); font-family: 'VT323'; font-size: 16px; }
 
-.goalrow { margin: 12px 0 6px; }
-.goalrow .lbl { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.ctrls { display: flex; gap: 8px; margin-top: 12px; }
+.goalrow {
+  flex: none;
+  margin: 12px 0 6px;
+}
+.goalrow .lbl {
+  display: flex;
+  justify-content: space-between;
+  min-height: 14px;
+  line-height: 14px;
+  margin-bottom: 4px;
+}
+.ctrls {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
 .ctrls .btn {
   flex: 1;
   min-width: 0;
@@ -1024,8 +1209,9 @@ main.body {
 
 /* ---- peek 模式：不 hover 时只露 ¥+数字+动效，hover 展开完整 UI ---- */
 .titlebar, .statusline, .submeta, .goalrow, .ctrls {
-  transition: opacity .16s ease, max-height .22s ease, margin .22s ease, padding .18s ease, border-width .18s ease;
-  overflow: hidden;
+  transition: opacity .08s steps(2);
+  overflow: visible;
+  flex-shrink: 0;
 }
 .titlebar { max-height: 48px; }
 .statusline { max-height: 36px; }
@@ -1038,7 +1224,7 @@ main.body {
 #win.is-peek .goalrow,
 #win.is-peek .ctrls {
   opacity: 0; max-height: 0; margin-top: 0; margin-bottom: 0;
-  padding-top: 0; padding-bottom: 0; pointer-events: none;
+  padding-top: 0; padding-bottom: 0; pointer-events: none; overflow: hidden;
 }
 #win.is-peek .titlebar { border-bottom-width: 0; }
 #win.is-peek main.body {
@@ -1078,6 +1264,39 @@ main.body {
 #win.is-h-compact .statusline,
 #win.is-w-compact .statusline {
   display: none;
+}
+#win.is-h-short main.body {
+  padding: 10px 12px 12px;
+  gap: 6px;
+}
+#win.is-h-short .readout {
+  padding: 0;
+}
+#win.is-h-short .submeta {
+  min-height: 16px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+#win.is-h-short .submeta b {
+  font-size: 15px;
+  line-height: 16px;
+}
+#win.is-h-short .goalrow {
+  margin: 5px 0 2px;
+}
+#win.is-h-short .goalrow .lbl {
+  min-height: 12px;
+  line-height: 12px;
+  margin-bottom: 2px;
+}
+#win.is-h-short .bar {
+  height: 16px;
+}
+#win.is-h-short .ctrls {
+  margin-top: 6px;
+}
+#win.is-h-short .ctrls .btn {
+  padding: 7px 12px;
 }
 #win.is-h-short .submeta .meta-label,
 #win.is-w-compact .submeta .meta-label {

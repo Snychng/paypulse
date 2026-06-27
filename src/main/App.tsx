@@ -408,8 +408,8 @@ export function App() {
         body {
           display: grid;
           place-items: center;
-          background: #0c0d18;
-          background-image: radial-gradient(120% 120% at 50% 0%, #1a1c2c 0%, #0c0d18 70%);
+          background: var(--bg-solid);
+          background-image: var(--app-backdrop);
           padding: 18px;
         }
         .window {

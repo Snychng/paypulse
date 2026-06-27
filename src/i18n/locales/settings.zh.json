@@ -36,7 +36,9 @@
   "theme": {
     "system": "跟随系统",
     "dark": "深色",
-    "light": "浅色"
+    "light": "浅色",
+    "transparent": "透明",
+    "macaron": "马卡龙"
   },
   "language": {
     "system": "跟随系统",

@@ -11,15 +11,15 @@ use tauri_plugin_autostart::ManagerExt;
 use uuid::Uuid;
 
 use crate::app_state::{AppState, SessionStart};
-use crate::engine::EngineState;
+use crate::engine::{apply_tick, EngineState, FinalizedDay};
 use crate::ipc::{
     ChangeReason, SettingsDto, Snapshot, StateChangedPayload, StatsRange, StatsResult,
     EVENT_STATE_CHANGED,
 };
 use crate::persistence;
 
-const SETTINGS_WINDOW_WIDTH: f64 = 560.0;
-const SETTINGS_WINDOW_HEIGHT: f64 = 680.0;
+const SETTINGS_WINDOW_WIDTH: f64 = 880.0;
+const SETTINGS_WINDOW_HEIGHT: f64 = 720.0;
 
 // ---- helpers ----
 
@@ -27,6 +27,7 @@ fn snapshot_of(e: &EngineState) -> Snapshot {
     Snapshot {
         today_cents: e.today_cents(),
         session_cents: e.session_cents(),
+        session_active_secs: e.session_active_secs(),
         per_second_cents: e.per_second_cents(),
         state: e.status,
         is_overtime: e.is_overtime(),
@@ -41,6 +42,7 @@ fn emit_state_changed(app: &AppHandle, e: &EngineState, reason: ChangeReason) {
         session_id: e.session_id.clone(),
         reason,
         today_cents: e.today_cents(),
+        session_active_secs: e.session_active_secs(),
         local_date: e.current_local_date.to_string(),
     };
     let _ = app.emit(EVENT_STATE_CHANGED, payload);
@@ -74,14 +76,32 @@ async fn flush(app: &AppHandle, fs: &FlushSnapshot) {
     );
 }
 
+async fn persist_finalized_day(app: &AppHandle, finalized: Option<FinalizedDay>) {
+    if let Some(fin) = finalized {
+        let state = app.state::<AppState>();
+        let _ = persistence::upsert_day_total(
+            &state.db,
+            fin.date,
+            fin.total_cents,
+            fin.active_secs as i64,
+            fin.overtime_secs as i64,
+        )
+        .await;
+        *state.last_milestone_cents.lock().unwrap() = 0;
+    }
+}
+
 // ---- core actions (shared by commands + tray menu) ----
 
 pub async fn do_start(app: AppHandle) -> Snapshot {
     let state = app.state::<AppState>();
     let sid = Uuid::new_v4().to_string();
 
-    let (snap, marker) = {
+    let (snap, marker, finalized) = {
+        let mut clock = state.clock.lock().await;
+        let input = clock.next_tick_input();
         let mut eng = state.engine.lock().await;
+        let settled = apply_tick(&mut eng, &input);
         let started = eng.start(sid.clone());
         let marker = if started {
             Some(SessionStart {
@@ -94,19 +114,23 @@ pub async fn do_start(app: AppHandle) -> Snapshot {
             None
         };
         emit_state_changed(&app, &eng, ChangeReason::User);
-        (snapshot_of(&eng), marker)
+        (snapshot_of(&eng), marker, settled.finalized_day)
     };
 
     if let Some(m) = marker {
         *state.session_start.lock().unwrap() = Some(m);
     }
+    persist_finalized_day(&app, finalized).await;
     snap
 }
 
 pub async fn do_pause(app: AppHandle) -> Snapshot {
     let state = app.state::<AppState>();
-    let (snap, fs) = {
+    let (snap, fs, finalized) = {
+        let mut clock = state.clock.lock().await;
+        let input = clock.next_tick_input();
         let mut eng = state.engine.lock().await;
+        let settled = apply_tick(&mut eng, &input);
         eng.pause();
         emit_state_changed(&app, &eng, ChangeReason::User);
         (
@@ -117,25 +141,37 @@ pub async fn do_pause(app: AppHandle) -> Snapshot {
                 today_cents: eng.today_cents(),
                 threshold_secs: eng.settings.daily_threshold_secs,
             },
+            settled.finalized_day,
         )
     };
+    persist_finalized_day(&app, finalized).await;
     flush(&app, &fs).await; // flush on pause (PLAN §1.2 tiered flush)
     snap
 }
 
 pub async fn do_resume(app: AppHandle) -> Snapshot {
     let state = app.state::<AppState>();
-    let mut eng = state.engine.lock().await;
-    eng.resume();
-    let snap = snapshot_of(&eng);
-    emit_state_changed(&app, &eng, ChangeReason::User);
+    let (snap, finalized) = {
+        let mut clock = state.clock.lock().await;
+        let input = clock.next_tick_input();
+        let mut eng = state.engine.lock().await;
+        let settled = apply_tick(&mut eng, &input);
+        eng.resume();
+        let snap = snapshot_of(&eng);
+        emit_state_changed(&app, &eng, ChangeReason::User);
+        (snap, settled.finalized_day)
+    };
+    persist_finalized_day(&app, finalized).await;
     snap
 }
 
 pub async fn do_stop(app: AppHandle) -> Snapshot {
     let state = app.state::<AppState>();
-    let (snap, fs) = {
+    let (snap, fs, finalized) = {
+        let mut clock = state.clock.lock().await;
+        let input = clock.next_tick_input();
         let mut eng = state.engine.lock().await;
+        let settled = apply_tick(&mut eng, &input);
         let fs = FlushSnapshot {
             date: eng.current_local_date,
             accumulated_secs: eng.accumulated_active_secs,
@@ -144,10 +180,11 @@ pub async fn do_stop(app: AppHandle) -> Snapshot {
         };
         eng.stop();
         emit_state_changed(&app, &eng, ChangeReason::User);
-        (snapshot_of(&eng), fs)
+        (snapshot_of(&eng), fs, settled.finalized_day)
     };
 
     let marker = state.session_start.lock().unwrap().take();
+    persist_finalized_day(&app, finalized).await;
     flush(&app, &fs).await;
 
     if let Some(m) = marker {
@@ -235,8 +272,15 @@ pub async fn engine_stop(app: AppHandle) -> Result<Snapshot, String> {
 #[tauri::command]
 pub async fn get_snapshot(app: AppHandle) -> Result<Snapshot, String> {
     let state = app.state::<AppState>();
-    let eng = state.engine.lock().await;
-    Ok(snapshot_of(&eng))
+    let (snap, finalized) = {
+        let mut clock = state.clock.lock().await;
+        let input = clock.next_tick_input();
+        let mut eng = state.engine.lock().await;
+        let settled = apply_tick(&mut eng, &input);
+        (snapshot_of(&eng), settled.finalized_day)
+    };
+    persist_finalized_day(&app, finalized).await;
+    Ok(snap)
 }
 
 #[tauri::command]

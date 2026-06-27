@@ -12,7 +12,7 @@ export type EngineStatus = "idle" | "working" | "paused";
 /** Why a state-change fired (PLAN §6). */
 export type ChangeReason = "user" | "rollover" | "sleep-resume" | "settings";
 
-export type Theme = "system" | "dark" | "light";
+export type Theme = "system" | "dark" | "light" | "transparent" | "macaron";
 export type Language = "system" | "zh" | "en";
 /** 'auto' follows UI language (zh→CNY, en→USD) — symbol only, no FX (D2). */
 export type Currency = "auto" | "CNY" | "USD";
@@ -21,6 +21,7 @@ export type Currency = "auto" | "CNY" | "USD";
 export interface TickPayload {
   todayCents: number;
   sessionCents: number;
+  sessionActiveSecs: number;
   perSecondCents: number;
   state: EngineStatus;
   isOvertime: boolean;
@@ -33,6 +34,7 @@ export interface TickPayload {
 export interface Snapshot {
   todayCents: number;
   sessionCents: number;
+  sessionActiveSecs: number;
   perSecondCents: number;
   state: EngineStatus;
   isOvertime: boolean;
@@ -46,6 +48,7 @@ export interface StateChangedPayload {
   sessionId: string | null;
   reason: ChangeReason;
   todayCents: number;
+  sessionActiveSecs: number;
   localDate: string;
 }
 

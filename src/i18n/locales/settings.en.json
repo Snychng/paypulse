@@ -36,7 +36,9 @@
   "theme": {
     "system": "System",
     "dark": "Dark",
-    "light": "Light"
+    "light": "Light",
+    "transparent": "Clear",
+    "macaron": "Macaron"
   },
   "language": {
     "system": "System",

@@ -148,8 +148,8 @@ fn build_aux_windows(app: &tauri::AppHandle) -> tauri::Result<()> {
     if app.get_webview_window("settings").is_none() {
         WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
             .title("PayPulse · 设置")
-            .inner_size(560.0, 680.0)
-            .min_inner_size(556.0, 560.0)
+            .inner_size(880.0, 720.0)
+            .min_inner_size(760.0, 560.0)
             .resizable(true)
             .visible(false)
             .build()?;

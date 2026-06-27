@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayPulse 薪跳 · P Pixel Shadow 20 版静态方案</title>
+    <style>
+      :root {
+        --ink: #101828;
+        --muted: #667085;
+        --line: #d9e2ee;
+        --paper: #f6f8fb;
+        --blue: #0a66ff;
+        --deep: #102a56;
+        --cyan: #30d6e9;
+        --gold: #ffbd2e;
+        --green: #22c55e;
+        --shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          ui-rounded,
+          "Avenir Next",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          sans-serif;
+        background:
+          linear-gradient(rgba(16, 24, 40, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 24, 40, 0.035) 1px, transparent 1px),
+          radial-gradient(circle at 12% 4%, rgba(48, 214, 233, 0.16), transparent 29%),
+          radial-gradient(circle at 88% 0%, rgba(255, 189, 46, 0.15), transparent 27%),
+          var(--paper);
+        background-size: 28px 28px, 28px 28px, auto, auto, auto;
+      }
+
+      .page {
+        width: min(1500px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 44px 0 72px;
+      }
+
+      .hero,
+      .rules,
+      .card,
+      .lockup,
+      .footer {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+        gap: 22px;
+        padding: 34px;
+      }
+
+      .kicker {
+        margin: 0 0 14px;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 900px;
+        margin: 0;
+        font-size: clamp(42px, 5vw, 76px);
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 860px;
+        margin: 20px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.72;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 24px;
+      }
+
+      .chip {
+        padding: 8px 11px;
+        border: 1px solid #cfd8e5;
+        border-radius: 999px;
+        background: #fff;
+        color: #344054;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hero-preview {
+        display: grid;
+        place-items: center;
+      }
+
+      .app-mask {
+        display: block;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border-radius: 22.37%;
+        background: #fff;
+        box-shadow:
+          inset 0 0 0 1px rgba(16, 24, 40, 0.04),
+          inset 0 1px 0 rgba(255, 255, 255, 0.5),
+          0 30px 70px rgba(16, 42, 86, 0.18);
+      }
+
+      .app-mask svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        shape-rendering: crispEdges;
+      }
+
+      .hero-icon {
+        width: min(76%, 420px);
+      }
+
+      .rules {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        overflow: hidden;
+        margin: 22px 0 30px;
+        background: var(--line);
+        box-shadow: none;
+      }
+
+      .rule {
+        min-height: 112px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .rule strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 15px;
+      }
+
+      .rule p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.58;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin: 0 0 16px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .section-head p {
+        max-width: 760px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(16, 24, 40, 0.06);
+      }
+
+      .stage {
+        display: grid;
+        place-items: center;
+        min-height: 270px;
+        padding: 28px;
+        border-bottom: 1px solid #edf1f6;
+        background:
+          linear-gradient(135deg, rgba(10, 102, 255, 0.06), transparent 42%),
+          #fbfdff;
+      }
+
+      .icon-xl {
+        width: 176px;
+      }
+
+      .info {
+        padding: 16px 17px 18px;
+      }
+
+      .topline {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 17px;
+        letter-spacing: 0;
+      }
+
+      .id {
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .note {
+        margin: 9px 0 13px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.58;
+      }
+
+      .sizes {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #edf1f6;
+      }
+
+      .sizes .app-mask {
+        box-shadow: 0 5px 12px rgba(16, 24, 40, 0.12);
+      }
+
+      .s16 {
+        width: 16px;
+      }
+
+      .s32 {
+        width: 32px;
+      }
+
+      .s64 {
+        width: 64px;
+      }
+
+      .s128 {
+        width: 128px;
+      }
+
+      .lockups {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 30px;
+      }
+
+      .lockup {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        min-height: 148px;
+        padding: 22px;
+        box-shadow: 0 12px 32px rgba(16, 24, 40, 0.06);
+      }
+
+      .lockup .app-mask {
+        flex: 0 0 84px;
+        width: 84px;
+      }
+
+      .brand strong {
+        display: block;
+        font-size: 26px;
+        letter-spacing: 0;
+      }
+
+      .brand span {
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .footer {
+        margin-top: 24px;
+        padding: 20px 22px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      @media (max-width: 1200px) {
+        .grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .rules,
+        .lockups {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 860px) {
+        .page {
+          width: min(100% - 24px, 720px);
+          padding-top: 22px;
+        }
+
+        .hero,
+        .grid,
+        .rules,
+        .lockups {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding: 24px;
+        }
+
+        .section-head {
+          display: block;
+        }
+
+        .section-head p {
+          margin-top: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div>
+          <p class="kicker">PayPulse 薪跳 · P Pixel Shadow Static Set</p>
+          <h1>只围绕大写像素 P、阴影和小附件做 20 版</h1>
+          <p class="lead">
+            这轮严格参考 P Pixel Shadow：主角必须是大写像素 P，必须有明确阴影，还必须有一个额外的小部分作为 PayPulse 的薪资/到账/脉搏提示。所有方案都是静态 SVG，没有任何动效。
+          </p>
+          <div class="chips">
+            <span class="chip">大写字母 P</span>
+            <span class="chip">像素风</span>
+            <span class="chip">明确阴影</span>
+            <span class="chip">额外小部件</span>
+            <span class="chip">无动效</span>
+          </div>
+        </div>
+        <div class="hero-preview">
+          <div class="app-mask hero-icon" id="heroIcon"></div>
+        </div>
+      </section>
+
+      <section class="rules">
+        <div class="rule">
+          <strong>P 必须是主角</strong>
+          <p>每个图标第一眼都要读到大写 P，抽象流线只作为辅助。</p>
+        </div>
+        <div class="rule">
+          <strong>阴影要看得见</strong>
+          <p>阴影不是柔光，而是像素块偏移，让图标有复古层次。</p>
+        </div>
+        <div class="rule">
+          <strong>只加一个小部分</strong>
+          <p>小金币、蓝色收入条、角标、脉搏块都可以，但不能变复杂。</p>
+        </div>
+        <div class="rule">
+          <strong>静态可落地</strong>
+          <p>不使用动态样式或动态扫描，方便后续直接做 iconset。</p>
+        </div>
+      </section>
+
+      <section class="section-head">
+        <h2>20 个 P Pixel Shadow 方案</h2>
+        <p>每个方案都保留 16/32/64/128px 缩放检查，先看像素 P 和阴影在小尺寸是否还清楚。</p>
+      </section>
+
+      <section class="grid" id="variantGrid" aria-label="P Pixel Shadow variants"></section>
+
+      <section class="lockups" id="lockups" aria-label="品牌锁定示例"></section>
+
+      <div class="footer">
+        我的初步判断：如果想最贴近上一版 P Pixel Shadow，优先看 01、02、07、14；如果想更像成熟 App Icon，优先看 04、09、12、20；如果想像素感最强，优先看 03、05、10、16。下一轮可以挑 2 到 3 个继续精修像素比例和最终 1024/512/256/128/64/32/16 图标资产。
+      </div>
+    </main>
+
+    <script>
+      const C = {
+        ink: "#101828",
+        deep: "#102a56",
+        blue: "#0a66ff",
+        cyan: "#30d6e9",
+        gold: "#ffbd2e",
+        green: "#22c55e",
+        orange: "#ff7a3d",
+        red: "#ff5c48",
+        line: "#d9e2ee",
+        shadow: "rgba(16, 24, 40, 0.18)",
+      };
+
+      const defs = `
+        <defs>
+          <linearGradient id="bgWhite" x1="120" y1="80" x2="880" y2="940">
+            <stop stop-color="#ffffff" />
+            <stop offset="1" stop-color="#e8eef7" />
+          </linearGradient>
+          <linearGradient id="bgIce" x1="120" y1="80" x2="880" y2="940">
+            <stop stop-color="#fbfeff" />
+            <stop offset="1" stop-color="#d9f4ff" />
+          </linearGradient>
+          <linearGradient id="bgPaper" x1="120" y1="80" x2="880" y2="940">
+            <stop stop-color="#ffffff" />
+            <stop offset="1" stop-color="#f3f6fa" />
+          </linearGradient>
+          <linearGradient id="bgBlue" x1="120" y1="80" x2="880" y2="940">
+            <stop stop-color="#eafbff" />
+            <stop offset="1" stop-color="#cde9ff" />
+          </linearGradient>
+          <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+            <path d="M64 0H0V64" fill="none" stroke="#d8e2ee" stroke-width="4" opacity="0.46" />
+          </pattern>
+        </defs>
+      `;
+
+      function svg(content, bg = "url(#bgWhite)", extra = "") {
+        return `
+          <svg viewBox="0 0 1024 1024" role="img" aria-label="PayPulse pixel P icon">
+            ${defs}
+            <rect width="1024" height="1024" fill="${bg}" />
+            ${extra}
+            ${content}
+          </svg>
+        `;
+      }
+
+      function pBlocks(x, y, u, fill, mid = fill) {
+        const b = Math.round(u * 1.24);
+        return `
+          <rect x="${x}" y="${y}" width="${b}" height="${u * 7}" fill="${fill}" />
+          <rect x="${x + b}" y="${y}" width="${u * 4}" height="${b}" fill="${fill}" />
+          <rect x="${x + b + u * 4}" y="${y + b}" width="${b}" height="${u * 2}" fill="${fill}" />
+          <rect x="${x + b}" y="${y + u * 3}" width="${u * 4 + b}" height="${b}" fill="${mid}" />
+          <rect x="${x + b}" y="${y + b}" width="${u * 3}" height="${u * 2}" fill="#fff" opacity="0.98" />
+        `;
+      }
+
+      function pTight(x, y, u, fill, mid = fill) {
+        const b = Math.round(u * 1.24);
+        return `
+          <rect x="${x}" y="${y}" width="${b}" height="${u * 6}" fill="${fill}" />
+          <rect x="${x + b}" y="${y}" width="${u * 3}" height="${b}" fill="${fill}" />
+          <rect x="${x + b + u * 3}" y="${y + b}" width="${b}" height="${u * 2}" fill="${fill}" />
+          <rect x="${x + b}" y="${y + u * 3}" width="${u * 3 + b}" height="${b}" fill="${mid}" />
+          <rect x="${x + b}" y="${y + b}" width="${u * 2}" height="${u * 2}" fill="#fff" opacity="0.98" />
+        `;
+      }
+
+      function shadowP(x, y, u, shadow = "rgba(16,24,40,.16)") {
+        return pBlocks(x, y, u, shadow, shadow);
+      }
+
+      function iconP({ x = 250, y = 220, u = 74, fill = C.ink, mid = C.blue, sx = 50, sy = 54, sh = "rgba(16,24,40,.14)", extra = "", bg = "url(#bgWhite)", bgExtra = "" }) {
+        return svg(`
+          ${shadowP(x + sx, y + sy, u, sh)}
+          ${pBlocks(x, y, u, fill, mid)}
+          ${extra}
+        `, bg, bgExtra);
+      }
+
+      const variants = [
+        {
+          id: "01",
+          title: "Classic Pixel Shadow",
+          note: "最接近 P Pixel Shadow：像素 P、右下阴影、蓝色收入条和金色小块。",
+          svg: iconP({
+            extra: `
+              <rect x="468" y="746" width="222" height="74" fill="${C.blue}" />
+              <rect x="690" y="672" width="74" height="74" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "02",
+          title: "Blue Tail",
+          note: "额外小部分变成更长的蓝色尾条，像收入流从 P 里输出。",
+          svg: iconP({
+            sx: 58,
+            sy: 48,
+            extra: `
+              <rect x="438" y="746" width="336" height="74" fill="${C.blue}" />
+              <rect x="774" y="672" width="74" height="74" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "03",
+          title: "Grid Counter P",
+          note: "白底带微网格，像素 P 更像计数器资产，小块是薪资 tick。",
+          svg: iconP({
+            bg: "url(#bgPaper)",
+            bgExtra: '<rect width="1024" height="1024" fill="url(#grid)" />',
+            sh: "rgba(16,42,86,.18)",
+            extra: `
+              <rect x="522" y="736" width="74" height="74" fill="${C.blue}" />
+              <rect x="620" y="736" width="74" height="74" fill="${C.cyan}" />
+              <rect x="718" y="736" width="74" height="74" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "04",
+          title: "Pro Badge",
+          note: "P 保持黑蓝硬边，右上角小蓝章增加 App Icon 的完整度。",
+          svg: iconP({
+            x: 246,
+            y: 224,
+            u: 72,
+            sx: 44,
+            sy: 44,
+            extra: `
+              <rect x="706" y="214" width="96" height="96" fill="${C.blue}" />
+              <rect x="730" y="238" width="48" height="48" fill="#fff" />
+            `,
+          }),
+        },
+        {
+          id: "05",
+          title: "Deep Pixel",
+          note: "更深的阴影偏移，像复古街机硬投影，像素味更强。",
+          svg: iconP({
+            sx: 82,
+            sy: 72,
+            sh: "#c5d0df",
+            mid: C.cyan,
+            extra: `
+              <rect x="436" y="732" width="84" height="84" fill="${C.blue}" />
+              <rect x="544" y="732" width="84" height="84" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "06",
+          title: "Coin Pixel",
+          note: "只加一个像素金币块，让金融含义明确但不复杂。",
+          svg: iconP({
+            bg: "url(#bgIce)",
+            extra: `
+              <rect x="666" y="666" width="128" height="128" fill="${C.gold}" />
+              <rect x="698" y="698" width="64" height="64" fill="#fff2a8" />
+            `,
+          }),
+        },
+        {
+          id: "07",
+          title: "Corner Pay",
+          note: "右下角蓝色阶梯块像到账台阶，是比较稳的专业图标方向。",
+          svg: iconP({
+            extra: `
+              <rect x="520" y="768" width="86" height="62" fill="${C.blue}" />
+              <rect x="606" y="706" width="86" height="124" fill="${C.blue}" />
+              <rect x="692" y="644" width="86" height="186" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "08",
+          title: "Small Pulse",
+          note: "额外小部分是一段像素脉搏，强化薪跳而不是单纯支付。",
+          svg: iconP({
+            extra: `
+              <rect x="430" y="756" width="74" height="48" fill="${C.blue}" />
+              <rect x="504" y="708" width="74" height="96" fill="${C.blue}" />
+              <rect x="578" y="660" width="74" height="144" fill="${C.cyan}" />
+              <rect x="652" y="708" width="74" height="96" fill="${C.blue}" />
+              <rect x="726" y="756" width="74" height="48" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "09",
+          title: "Ice Shadow",
+          note: "浅蓝背景、蓝灰阴影，视觉更接近 macOS 白底专业工具。",
+          svg: iconP({
+            bg: "url(#bgBlue)",
+            fill: C.deep,
+            mid: C.blue,
+            sh: "#a9d7ee",
+            extra: `
+              <rect x="452" y="738" width="260" height="74" fill="${C.blue}" />
+              <rect x="712" y="664" width="74" height="74" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "10",
+          title: "Arcade Block",
+          note: "更粗的 P 与黄色像素点，偏复古游戏机但仍保持白底。",
+          svg: iconP({
+            x: 220,
+            y: 200,
+            u: 84,
+            sx: 70,
+            sy: 70,
+            sh: "#d6dee9",
+            mid: C.blue,
+            extra: `
+              <rect x="742" y="742" width="84" height="84" fill="${C.gold}" />
+              <rect x="646" y="742" width="84" height="84" fill="${C.blue}" />
+            `,
+          }),
+        },
+        {
+          id: "11",
+          title: "Inset Shadow",
+          note: "阴影更贴近 P 的右下侧，字母紧凑，小尺寸更稳。",
+          svg: iconP({
+            x: 270,
+            y: 214,
+            u: 72,
+            sx: 34,
+            sy: 34,
+            sh: "#ccd6e5",
+            extra: `
+              <rect x="470" y="720" width="72" height="72" fill="${C.blue}" />
+              <rect x="566" y="720" width="72" height="72" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "12",
+          title: "Frame Pixel P",
+          note: "加入一圈硬边框，像正式 App Icon 模块，小附件压在右下角。",
+          svg: svg(`
+            <rect x="178" y="178" width="668" height="668" fill="#fff" stroke="${C.ink}" stroke-width="48" />
+            ${shadowP(316, 276, 68, "#d0dae8")}
+            ${pBlocks(264, 224, 68, C.ink, C.blue)}
+            <rect x="676" y="690" width="92" height="92" fill="${C.gold}" />
+          `, "url(#bgIce)"),
+        },
+        {
+          id: "13",
+          title: "Blue Body",
+          note: "P 主体改为蓝色，阴影仍为深灰，支付识别更强。",
+          svg: iconP({
+            fill: C.blue,
+            mid: C.deep,
+            sh: "#cbd5e1",
+            extra: `
+              <rect x="458" y="744" width="222" height="74" fill="${C.deep}" />
+              <rect x="680" y="670" width="74" height="74" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "14",
+          title: "Shadow Stack",
+          note: "双层像素阴影，层次最强，但仍只保留一个小蓝色附件。",
+          svg: svg(`
+            ${shadowP(348, 312, 70, "#d9e2ee")}
+            ${shadowP(304, 268, 70, "#b9c7da")}
+            ${pBlocks(252, 216, 70, C.ink, C.blue)}
+            <rect x="586" y="750" width="150" height="70" fill="${C.cyan}" />
+          `),
+        },
+        {
+          id: "15",
+          title: "Salary Dot",
+          note: "额外小部分是一个绿点，表达收益状态，整体比金币更克制。",
+          svg: iconP({
+            mid: C.blue,
+            extra: `
+              <rect x="676" y="676" width="116" height="116" fill="${C.green}" />
+              <rect x="710" y="710" width="48" height="48" fill="#dcffe9" />
+            `,
+          }),
+        },
+        {
+          id: "16",
+          title: "Pixel Step P",
+          note: "P 的尾部额外接出一段像素阶梯，强调收入持续增长。",
+          svg: iconP({
+            x: 238,
+            y: 214,
+            u: 72,
+            extra: `
+              <rect x="454" y="718" width="72" height="72" fill="${C.blue}" />
+              <rect x="526" y="646" width="72" height="144" fill="${C.blue}" />
+              <rect x="598" y="574" width="72" height="216" fill="${C.cyan}" />
+              <rect x="670" y="502" width="72" height="288" fill="${C.gold}" />
+            `,
+          }),
+        },
+        {
+          id: "17",
+          title: "Compact App P",
+          note: "P 更居中、更紧凑，额外小部分只是一条底部蓝色像素线。",
+          svg: iconP({
+            x: 308,
+            y: 206,
+            u: 70,
+            sx: 42,
+            sy: 42,
+            extra: `
+              <rect x="310" y="762" width="418" height="58" fill="${C.blue}" />
+              <rect x="728" y="704" width="58" height="58" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "18",
+          title: "Orange Alert",
+          note: "小部件用橙色角标，像通知和里程碑到账提醒。",
+          svg: iconP({
+            mid: C.blue,
+            extra: `
+              <rect x="688" y="236" width="112" height="112" fill="${C.orange}" />
+              <rect x="716" y="264" width="56" height="56" fill="#fff" opacity="0.85" />
+              <rect x="456" y="744" width="224" height="74" fill="${C.blue}" />
+            `,
+          }),
+        },
+        {
+          id: "19",
+          title: "Mini Window P",
+          note: "额外小部分是一块小窗状态条，呼应 PayPulse 常驻桌面小窗。",
+          svg: iconP({
+            bg: "url(#bgPaper)",
+            extra: `
+              <rect x="540" y="690" width="248" height="124" fill="${C.blue}" />
+              <rect x="570" y="720" width="68" height="64" fill="#fff" opacity="0.9" />
+              <rect x="658" y="720" width="100" height="64" fill="${C.cyan}" />
+            `,
+          }),
+        },
+        {
+          id: "20",
+          title: "Final Candidate P",
+          note: "综合型候选：P 最大、阴影清楚，小附件少而有识别度。",
+          svg: iconP({
+            x: 246,
+            y: 206,
+            u: 76,
+            sx: 56,
+            sy: 56,
+            sh: "#c9d4e3",
+            mid: C.blue,
+            extra: `
+              <rect x="474" y="750" width="228" height="76" fill="${C.blue}" />
+              <rect x="702" y="674" width="76" height="76" fill="${C.gold}" />
+              <rect x="778" y="598" width="76" height="76" fill="${C.cyan}" />
+            `,
+          }),
+        },
+      ];
+
+      function mask(svg, cls = "") {
+        return `<div class="app-mask ${cls}">${svg}</div>`;
+      }
+
+      function card(v) {
+        return `
+          <article class="card">
+            <div class="stage">${mask(v.svg, "icon-xl")}</div>
+            <div class="info">
+              <div class="topline"><h3>${v.title}</h3><span class="id">${v.id}</span></div>
+              <p class="note">${v.note}</p>
+              <div class="sizes">
+                ${mask(v.svg, "s16")}
+                ${mask(v.svg, "s32")}
+                ${mask(v.svg, "s64")}
+                ${mask(v.svg, "s128")}
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      document.getElementById("variantGrid").innerHTML = variants.map(card).join("");
+      document.getElementById("heroIcon").innerHTML = variants[0].svg;
+      document.getElementById("lockups").innerHTML = [variants[0], variants[11], variants[19]]
+        .map(
+          (v) => `
+            <div class="lockup">
+              ${mask(v.svg)}
+              <div class="brand"><strong>PayPulse</strong><span>薪跳 · ${v.title}</span></div>
+            </div>
+          `,
+        )
+        .join("");
+    </script>
+  </body>
+</html>

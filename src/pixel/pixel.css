@@ -47,6 +47,7 @@
 :root, [data-theme="dark"] {
   --bg:        #14152400;          /* window may be translucent */
   --bg-solid:  #141524;
+  --app-backdrop: radial-gradient(120% 120% at 50% 0%, #1a1c2c 0%, #0c0d18 70%);
   --panel:     #20223c;
   --panel-2:   #2a2d4e;
   --inset:     #0f1020;
@@ -68,11 +69,14 @@
   --glow:      #ffcd7533;
   --dither:    rgba(255,255,255,.035);
   --scan:      rgba(0,0,0,.22);
+  --btn-ink:   var(--inset);
+  --btn-stop-ink: var(--s-white);
 }
 
 /* ---- LIGHT THEME: "Parchment Ledger" ---- */
 [data-theme="light"] {
   --bg-solid:  #f3e9cf;
+  --app-backdrop: radial-gradient(120% 120% at 50% 0%, #fff5d7 0%, #f3e9cf 72%);
   --panel:     #fbf3df;
   --panel-2:   #efe2bf;
   --inset:     #e6d6ad;
@@ -94,6 +98,72 @@
   --glow:      #c77b1f22;
   --dither:    rgba(0,0,0,.04);
   --scan:      rgba(120,90,30,.10);
+  --btn-ink:   #20264a;
+  --btn-stop-ink: var(--s-white);
+}
+
+/* ---- TRANSPARENT THEME: "Glass HUD" ---- */
+[data-theme="transparent"] {
+  --bg:        transparent;
+  --bg-solid:  transparent;
+  --app-backdrop: none;
+  --panel:     transparent;
+  --panel-2:   transparent;
+  --inset:     transparent;
+  --line:      rgba(202,238,250,.72);
+  --ink:       #f2fbff;
+  --ink-dim:   #b7dce7;
+  --ink-mute:  #7ba6b4;
+  --money:     #fff2a8;
+  --money-sh:  #ffc878;
+  --gain:      #9fffdc;
+  --gain-2:    #73e3c2;
+  --accentA:   #94efff;
+  --accentB:   #ffabc8;
+  --danger:    #ff7895;
+  --shadow:    transparent;
+  --hard:      transparent;
+  --num-out:   rgba(17,39,50,.86);
+  --seg-off:   rgba(255,255,255,.16);
+  --glow:      rgba(148,239,255,.28);
+  --dither:    transparent;
+  --scan:      rgba(255,255,255,.05);
+  --btn-ink:   var(--ink);
+  --btn-stop-ink: var(--danger);
+}
+
+/* ---- MACARON THEME: "Strawberry Mint Ledger" ---- */
+[data-theme="macaron"] {
+  --bg:        #fff7fb;
+  --bg-solid:  #fff7fb;
+  --app-backdrop:
+    radial-gradient(90% 90% at 12% 10%, #ffe5f0 0%, transparent 54%),
+    radial-gradient(75% 85% at 92% 4%, #dff7ff 0%, transparent 56%),
+    radial-gradient(90% 90% at 70% 96%, #e9ffe9 0%, transparent 58%),
+    linear-gradient(180deg, #fff9f2 0%, #fff2fb 100%);
+  --panel:     #fff0f7;
+  --panel-2:   #e8f7ff;
+  --inset:     #fffdf7;
+  --line:      #eac8da;
+  --ink:       #5f4a63;
+  --ink-dim:   #92778f;
+  --ink-mute:  #b69aaa;
+  --money:     #ff92b8;
+  --money-sh:  #ffc36e;
+  --gain:      #73d7aa;
+  --gain-2:    #8be4bd;
+  --accentA:   #79c9f5;
+  --accentB:   #cda8ff;
+  --danger:    #ff718b;
+  --shadow:    rgba(130,77,104,.18);
+  --hard:      #eccada;
+  --num-out:   #6c5363;
+  --seg-off:   #f2d7e3;
+  --glow:      rgba(255,146,184,.35);
+  --dither:    rgba(255,146,184,.12);
+  --scan:      rgba(255,183,210,.08);
+  --btn-ink:   #5f4a63;
+  --btn-stop-ink: #fffdf7;
 }
 
 /* ---------- 2. RESET / BASE ---------- */
@@ -185,7 +255,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- 5. BUTTONS ---------- */
 .btn {
   font-family: 'Pixelify Sans', sans-serif; font-weight: 700; font-size: 13px;
-  color: var(--inset); background: var(--money);
+  color: var(--btn-ink, var(--inset)); background: var(--money);
   border: var(--b) solid var(--ink);
   padding: 9px 14px; letter-spacing: .5px;
   box-shadow: var(--px) var(--px) 0 0 var(--hard);
@@ -195,9 +265,9 @@ button { font-family: inherit; cursor: pointer; }
 .btn:hover { filter: brightness(1.08); }
 .btn:active { transform: translate(var(--px), var(--px)); box-shadow: 0 0 0 0 var(--hard); }
 .btn.ghost   { background: var(--panel-2); color: var(--ink); }
-.btn.go      { background: var(--gain-2); color: var(--inset); }
-.btn.pause   { background: var(--s-gold); color: var(--inset); }
-.btn.stop    { background: var(--danger); color: var(--s-white); }
+.btn.go      { background: var(--gain-2); color: var(--btn-ink, var(--inset)); }
+.btn.pause   { background: var(--s-gold); color: var(--btn-ink, var(--inset)); }
+.btn.stop    { background: var(--danger); color: var(--btn-stop-ink, var(--s-white)); }
 .btn.icon    { padding: 9px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: var(--px) var(--px) 0 0 var(--hard); transform: none; }
 
@@ -207,8 +277,33 @@ button { font-family: inherit; cursor: pointer; }
 .btn.hold .hold-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; z-index: 1; pointer-events: none;
   background: repeating-linear-gradient(45deg, rgba(255,255,255,.34) 0 4px, rgba(255,255,255,.12) 4px 8px); }
 .btn.hold.holding { animation: holdShake .1s steps(2) infinite; }
-.btn.hold.confirmed { background: var(--gain-2) !important; color: var(--inset) !important; }
+.btn.hold.confirmed { background: var(--gain-2) !important; color: var(--btn-ink, var(--inset)) !important; }
 @keyframes holdShake { 0%,100% { transform: translate(0,0); } 50% { transform: translate(1px,-1px); } }
+
+[data-theme="transparent"] .btn {
+  background: transparent;
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--btn-ink);
+  text-shadow: 0 1px 0 rgba(0,0,0,.48);
+}
+[data-theme="transparent"] .btn.go,
+[data-theme="transparent"] .btn.pause,
+[data-theme="transparent"] .btn.stop,
+[data-theme="transparent"] .btn.ghost {
+  background: transparent;
+}
+[data-theme="transparent"] .btn.go { color: var(--gain); }
+[data-theme="transparent"] .btn.pause { color: var(--money); }
+[data-theme="transparent"] .btn.stop { color: var(--danger); }
+[data-theme="transparent"] .btn:hover { filter: none; color: var(--accentA); }
+[data-theme="transparent"] .btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+[data-theme="transparent"] .btn.hold .hold-fill {
+  background: linear-gradient(90deg, rgba(148,239,255,.26), rgba(255,242,168,.22));
+}
 
 /* ---------- 6. INPUTS / TOGGLES / SLIDER ---------- */
 .field { display: flex; flex-direction: column; gap: 6px; }
@@ -243,6 +338,26 @@ button { font-family: inherit; cursor: pointer; }
 .seg button:last-child { border-right: none; }
 .seg button[aria-pressed="true"] { background: var(--accentA); color: var(--inset); }
 
+[data-theme="transparent"] .input,
+[data-theme="transparent"] .slider,
+[data-theme="transparent"] .toggle,
+[data-theme="transparent"] .seg {
+  background: transparent;
+  box-shadow: none;
+}
+[data-theme="transparent"] .toggle[aria-checked="true"] {
+  background: transparent;
+  border-color: var(--gain);
+}
+[data-theme="transparent"] .toggle[aria-checked="true"] .knob {
+  background: var(--gain);
+}
+[data-theme="transparent"] .seg button[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--accentA);
+  color: var(--accentA);
+}
+
 /* hover tooltip (pixel) — add data-tip="…" to any element */
 [data-tip] { position: relative; }
 [data-tip]:hover::after {
@@ -262,6 +377,11 @@ button { font-family: inherit; cursor: pointer; }
 .chip { font-family: 'Silkscreen'; font-size: 9px; letter-spacing: 1px; padding: 4px 7px;
   background: var(--panel-2); border: 2px solid var(--ink); color: var(--ink-dim); }
 .chip.live { background: var(--gain-2); color: var(--inset); animation: blink 1.4s steps(2) infinite; }
+[data-theme="transparent"] .chip,
+[data-theme="transparent"] .chip.live {
+  background: transparent;
+  color: var(--gain);
+}
 
 /* ---------- 7. COIN / BILL SPRITES (via SVG <use>) ---------- */
 .sprite { display: inline-block; line-height: 0; }
