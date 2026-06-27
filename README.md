@@ -130,7 +130,9 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-macOS 签名和公证是可选项。若需要让用户打开时不出现 Gatekeeper 警告，请在 GitHub 仓库 Secrets 中配置以下变量：
+当前 Release workflow 默认产出未签名安装包，适合先完成自用和测试分发。未签名的 macOS 包首次打开时可能出现 Gatekeeper 提示。
+
+macOS 签名和公证是可选项。若后续需要让用户打开时不出现 Gatekeeper 警告，可以在 GitHub 仓库 Secrets 中配置以下变量，并在 `.github/workflows/release.yml` 的 Tauri 打包步骤中接入 Apple 签名环境变量：
 
 | Secret | 说明 |
 | --- | --- |
