@@ -148,8 +148,8 @@ fn build_aux_windows(app: &tauri::AppHandle) -> tauri::Result<()> {
     if app.get_webview_window("settings").is_none() {
         WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
             .title("PayPulse · 设置")
-            .inner_size(480.0, 620.0)
-            .min_inner_size(420.0, 480.0)
+            .inner_size(560.0, 680.0)
+            .min_inner_size(556.0, 560.0)
             .resizable(true)
             .visible(false)
             .build()?;
@@ -178,8 +178,8 @@ fn build_aux_windows(app: &tauri::AppHandle) -> tauri::Result<()> {
             .resizable(true)
             .shadow(true)
             .transparent(true)
-            .inner_size(300.0, 150.0)
-            .min_inner_size(170.0, 90.0)
+            .inner_size(300.0, 74.0)
+            .min_inner_size(170.0, 56.0)
             .visible(true)
             .build()?;
     }

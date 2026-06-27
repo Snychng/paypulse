@@ -6,7 +6,7 @@
 //! engine lock (capture values under lock, release, then await).
 
 use chrono::Local;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, LogicalSize, Manager};
 use tauri_plugin_autostart::ManagerExt;
 use uuid::Uuid;
 
@@ -17,6 +17,9 @@ use crate::ipc::{
     EVENT_STATE_CHANGED,
 };
 use crate::persistence;
+
+const SETTINGS_WINDOW_WIDTH: f64 = 560.0;
+const SETTINGS_WINDOW_HEIGHT: f64 = 680.0;
 
 // ---- helpers ----
 
@@ -195,6 +198,12 @@ pub fn show_settings(app: &AppHandle) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
     if let Some(w) = app.get_webview_window("settings") {
+        // 原型 `.window` 宽 520px，body 还有 18px padding；这里校正旧 window-state
+        // 恢复的窄尺寸，避免设置页被 480px 宽度挤压。
+        w.set_size(LogicalSize::new(
+            SETTINGS_WINDOW_WIDTH,
+            SETTINGS_WINDOW_HEIGHT,
+        ))?;
         w.show()?;
         w.set_focus()?;
     }

@@ -12,7 +12,7 @@
    样式复用 design/pixel.css 的 `.btn.hold` / `.hold-fill` / `.holding` / `.confirmed`。
    目标按钮需带 `.btn.hold` class，内部文本建议包一层 <span>（见 .btn.hold > span 规则）。
    ============================================================ */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
 export interface HoldToConfirmOptions {
@@ -30,6 +30,12 @@ export function useHoldToConfirm(
   ref: RefObject<HTMLElement | null>,
   { ms = 800, onConfirm }: HoldToConfirmOptions,
 ): void {
+  const onConfirmRef = useRef(onConfirm);
+
+  useEffect(() => {
+    onConfirmRef.current = onConfirm;
+  }, [onConfirm]);
+
   useEffect(() => {
     const btn = ref.current;
     if (!btn) return;
@@ -47,6 +53,7 @@ export function useHoldToConfirm(
 
     let anim: Animation | null = null;
     let resetTimer: ReturnType<typeof setTimeout> | null = null;
+    let confirmed = false;
 
     const reset = (): void => {
       btn.classList.remove("holding");
@@ -60,6 +67,16 @@ export function useHoldToConfirm(
       // 仅响应鼠标左键；触控/笔放行
       if (e.pointerType === "mouse" && e.button !== 0) return;
       e.preventDefault();
+      confirmed = false;
+      if (resetTimer) {
+        clearTimeout(resetTimer);
+        resetTimer = null;
+      }
+      btn.classList.remove("confirmed");
+      if (anim) {
+        anim.cancel();
+        anim = null;
+      }
       btn.classList.add("holding");
       anim = fillEl.animate([{ width: "0%" }, { width: "100%" }], {
         duration: ms,
@@ -67,6 +84,8 @@ export function useHoldToConfirm(
         fill: "forwards",
       });
       anim.onfinish = () => {
+        if (confirmed) return;
+        confirmed = true;
         btn.classList.remove("holding");
         btn.classList.add("confirmed");
         resetTimer = setTimeout(() => {
@@ -76,7 +95,7 @@ export function useHoldToConfirm(
             anim = null;
           }
         }, 460);
-        onConfirm();
+        onConfirmRef.current();
       };
       try {
         btn.setPointerCapture(e.pointerId);
@@ -109,5 +128,5 @@ export function useHoldToConfirm(
       // 仅清理本 hook 注入的充能条，避免影响外部预置的 .hold-fill
       if (injected) fillEl.remove();
     };
-  }, [ref, ms, onConfirm]);
+  }, [ref, ms]);
 }
